@@ -1,5 +1,6 @@
 mod db;
 mod hooks;
+mod install;
 mod mcp;
 mod paths;
 mod permissions;
@@ -42,6 +43,8 @@ pub fn run() {
             db::metrics_summary,
             paths::path_check,
             paths::home_dir,
+            install::install_kind,
+            install::install_package,
             mcp::editor_submit,
             mcp::editor_cancel,
         ])

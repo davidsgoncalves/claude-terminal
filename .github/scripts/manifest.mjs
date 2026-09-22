@@ -19,6 +19,9 @@ const PLATFORMS = [
   { suffix: "_aarch64.app.tar.gz", key: "darwin-aarch64" },
   { suffix: "_x64.app.tar.gz", key: "darwin-x86_64" },
   { suffix: ".AppImage", key: "linux-x86_64" },
+  // Read by the app itself: the Tauri updater cannot install a package, so a
+  // .deb install downloads this and hands it to the system installer.
+  { suffix: ".deb", key: "linux-x86_64-deb" },
 ];
 
 const assets = JSON.parse(gh(["release", "view", tag, "--json", "assets"])).assets.map((a) => a.name);

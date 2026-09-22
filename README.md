@@ -40,8 +40,9 @@ Baixe o instalador da [última release](../../releases/latest):
 | macOS Intel | `.dmg` com `x64` no nome |
 | Linux | `.AppImage` ou `.deb` |
 
-O app verifica atualizações ao abrir e a cada seis horas, e instala sozinho
-depois da sua confirmação.
+O app verifica atualizações ao abrir e a cada seis horas. No macOS e no
+AppImage ele instala sozinho depois da sua confirmação. Instalado pelo `.deb`,
+ele baixa o pacote novo e entrega ao instalador do sistema, que pede sua senha.
 
 O build não é assinado por uma conta de desenvolvedor da Apple, então o macOS
 marca o download com o atributo de quarentena. Se o sistema disser que o app
