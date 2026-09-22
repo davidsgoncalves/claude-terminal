@@ -622,3 +622,5 @@ button.star.on { color: var(--accent); }
 .update-bar.error { background: #3a2a2a; }
 .update-bar button { padding: 4px 12px; font-size: 11px; }
 .update-bar .ghost.auto { width: auto; }
+
+.topbar .brand.dev { color: var(--c-permission); }

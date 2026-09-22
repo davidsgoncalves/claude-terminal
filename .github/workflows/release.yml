@@ -1,16 +1,41 @@
 name: release
 
-# Publishes signed installers for macOS and Linux whenever a version tag lands.
+# Releases whatever lands on main, as soon as the version in tauri.conf.json
+# has no tag yet. Bump it with `pnpm bump` and merge; the rest is automatic.
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
+  decide:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      release: ${{ steps.check.outputs.release }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: check
+        run: |
+          version=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if git rev-parse "v$version" >/dev/null 2>&1; then
+            echo "v$version already released; nothing to do"
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "v$version is new; releasing"
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
+    needs: decide
+    if: needs.decide.outputs.release == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -64,8 +89,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "Claude Terminal ${{ github.ref_name }}"
+          tagName: v${{ needs.decide.outputs.version }}
+          releaseName: "Claude Terminal v${{ needs.decide.outputs.version }}"
           releaseBody: "Instaladores para macOS e Linux. O app se atualiza sozinho a partir daqui."
           releaseDraft: false
           prerelease: false

@@ -121,13 +121,14 @@ cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
 
 ### Publicar uma versão
 
-O workflow `release` compila macOS `aarch64` e `x64` e Linux `x64`, assina os
-pacotes e publica a release com o `latest.json` que o auto-update consome.
+O workflow `release` roda a cada push em `main` e só publica quando a versão de
+`src-tauri/tauri.conf.json` ainda não tem tag. Compila macOS `aarch64` e `x64`
+e Linux `x64`, assina os pacotes, cria a tag e publica a release com o
+`latest.json` que o auto-update consome.
 
 ```bash
-# ajuste a versão em src-tauri/tauri.conf.json e package.json
-git tag v0.2.0
-git push origin v0.2.0
+pnpm bump          # patch; aceita minor ou major
+git commit -am "..." && git push
 ```
 
 Os segredos `TAURI_SIGNING_PRIVATE_KEY` e `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`

@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useStore } from "../lib/store";
 import { SPLIT_MODES, type RateWindow, type TabState } from "../lib/types";
+
+/** Vite sets this only on the dev server, so a packaged build never shows it. */
+const IS_DEV = import.meta.env.DEV;
+const APP_NAME = IS_DEV ? "Claude Terminal - dev" : "Claude Terminal";
 
 function useNow(intervalMs = 30_000) {
   const [now, setNow] = useState(() => Date.now());
@@ -59,6 +64,10 @@ const COUNTED: Array<{ state: TabState; label: string }> = [
 export function TopBar() {
   const { tabs, activeTabId, statusByTab, rateLimits, openModal, splitMode, setSplitMode } = useStore();
   const now = useNow();
+
+  useEffect(() => {
+    void getCurrentWindow().setTitle(APP_NAME);
+  }, []);
   const active = tabs.find((t) => t.id === activeTabId);
   const activeStatus = active ? statusByTab[active.id] : undefined;
 
@@ -68,7 +77,7 @@ export function TopBar() {
 
   return (
     <header className="topbar">
-      <div className="brand">Claude Terminal</div>
+      <div className={`brand ${IS_DEV ? "dev" : ""}`}>{APP_NAME}</div>
 
       <div className={`limits ${stale ? "stale" : ""}`} title={stale ? "Último dado há mais de 10 min" : undefined}>
         <Meter label="5h" win={rateLimits?.five_hour} now={now} />
