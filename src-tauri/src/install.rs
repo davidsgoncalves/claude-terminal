@@ -49,10 +49,8 @@ pub fn install_package(file_name: String, bytes: Vec<u8>) -> Result<String, Stri
     std::fs::write(&path, bytes).map_err(|e| format!("não consegui gravar o pacote: {e}"))?;
     let path_str = path.to_string_lossy().to_string();
 
-    if which("pkexec") {
-        if run("pkexec", &["apt-get", "install", "-y", &path_str]).is_ok() {
-            return Ok("installed".into());
-        }
+    if which("pkexec") && run("pkexec", &["apt-get", "install", "-y", &path_str]).is_ok() {
+        return Ok("installed".into());
     }
     // No polkit, or the user dismissed it: let the desktop open the package.
     run("xdg-open", &[&path_str])?;
