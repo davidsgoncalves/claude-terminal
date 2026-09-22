@@ -624,3 +624,5 @@ button.star.on { color: var(--accent); }
 .update-bar .ghost.auto { width: auto; }
 
 .topbar .brand.dev { color: var(--c-permission); }
+
+.topbar.at-bottom { border-bottom: none; border-top: 1px solid var(--border); }

@@ -238,6 +238,7 @@ function App() {
 
   const live = tabs.filter((t) => t.state !== "dormant");
   const layout = useStore((s) => s.layout);
+  const barPosition = useStore((s) => s.barPosition);
   const groups = useStore((s) => s.groups);
   const borderWidth = useStore((s) => s.terminalBorder);
   const { splitMode, panes, focusedPane, focusPane } = useStore();
@@ -253,7 +254,7 @@ function App() {
   return (
     <div className="layout">
       <UpdateBanner />
-      <TopBar />
+      {barPosition === "top" && <TopBar />}
       <div className="body">
         {layout === "sidebar" && <Sidebar />}
         <main className="main">
@@ -298,6 +299,7 @@ function App() {
         </main>
         <RightPanel />
       </div>
+      {barPosition === "bottom" && <TopBar />}
       <Dialogs />
       <GroupMenu />
       <TabMenu />

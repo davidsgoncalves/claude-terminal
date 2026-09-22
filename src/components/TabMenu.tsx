@@ -1,10 +1,9 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "../lib/store";
-import { paneCount } from "../lib/types";
 
 /** Right-click menu for a tab or a terminal pane. */
 export function TabMenu() {
-  const { tabMenu, openTabMenu, startPaneAssign, closeTab, tabs, splitMode, panes } = useStore();
+  const { tabMenu, openTabMenu, startPaneAssign, closeTab, tabs } = useStore();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -24,7 +23,6 @@ export function TabMenu() {
   if (!tabMenu) return null;
   const tab = tabs.find((t) => t.id === tabMenu.tabId);
   if (!tab) return null;
-  const slot = panes.slice(0, paneCount(splitMode)).indexOf(tab.id);
 
   return (
     <div
@@ -36,14 +34,6 @@ export function TabMenu() {
       <button className="menu-item" onClick={() => startPaneAssign(tab.id)}>
         Colocar em um painel…
       </button>
-      {slot !== -1 && (
-        <button className="menu-item" onClick={() => {
-          useStore.getState().assignToPane(tab.id, slot);
-          openTabMenu(null);
-        }}>
-          Está no painel {slot + 1}
-        </button>
-      )}
       <div className="menu-sep" />
       <button
         className="menu-item danger"

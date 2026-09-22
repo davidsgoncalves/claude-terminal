@@ -16,6 +16,8 @@ function SettingsDialog({ onClose }: { onClose: () => void }) {
     setDefaultFolder,
     layout,
     setLayout,
+    barPosition,
+    setBarPosition,
     terminalBorder,
     setTerminalBorder,
   } = useStore();
@@ -38,21 +40,36 @@ function SettingsDialog({ onClose }: { onClose: () => void }) {
       <>
       <section className="settings-section">
         <h3>Lista de sessões</h3>
-        <ul className="folder-choice">
-          <li className={layout === "sidebar" ? "on" : ""} onClick={() => setLayout("sidebar")}>
-            <span className="folder-name">Lateral</span>
-            <span className="folder-path">Coluna à esquerda, grupos empilhados</span>
-          </li>
-          <li className={layout === "topbar" ? "on" : ""} onClick={() => setLayout("topbar")}>
-            <span className="folder-name">Superior</span>
-            <span className="folder-path">Barra horizontal acima do terminal</span>
-          </li>
-        </ul>
+        <div className="chip-row">
+          <button className={`chip ${layout === "sidebar" ? "on" : ""}`} onClick={() => setLayout("sidebar")}>
+            Lateral
+          </button>
+          <button className={`chip ${layout === "topbar" ? "on" : ""}`} onClick={() => setLayout("topbar")}>
+            Superior
+          </button>
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <h3>Barra de limites</h3>
+        <div className="chip-row">
+          <button
+            className={`chip ${barPosition === "top" ? "on" : ""}`}
+            onClick={() => setBarPosition("top")}
+          >
+            No topo
+          </button>
+          <button
+            className={`chip ${barPosition === "bottom" ? "on" : ""}`}
+            onClick={() => setBarPosition("bottom")}
+          >
+            Embaixo
+          </button>
+        </div>
       </section>
 
       <section className="settings-section">
         <h3>Borda do terminal</h3>
-        <p className="hint">Moldura na cor do grupo da aba ativa.</p>
         <div className="chip-row">
           {BORDER_OPTIONS.map((o) => (
             <button

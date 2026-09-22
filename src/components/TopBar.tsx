@@ -62,7 +62,8 @@ const COUNTED: Array<{ state: TabState; label: string }> = [
 ];
 
 export function TopBar() {
-  const { tabs, activeTabId, statusByTab, rateLimits, openModal, splitMode, setSplitMode } = useStore();
+  const { tabs, activeTabId, statusByTab, rateLimits, openModal, splitMode, setSplitMode, barPosition } =
+    useStore();
   const now = useNow();
 
   useEffect(() => {
@@ -76,7 +77,7 @@ export function TopBar() {
   const stale = rateLimits ? now - rateLimits.receivedAt > 10 * 60_000 : false;
 
   return (
-    <header className="topbar">
+    <header className={`topbar ${barPosition === "bottom" ? "at-bottom" : ""}`}>
       <div className={`brand ${IS_DEV ? "dev" : ""}`}>{APP_NAME}</div>
 
       <div className={`limits ${stale ? "stale" : ""}`} title={stale ? "Último dado há mais de 10 min" : undefined}>
@@ -118,13 +119,10 @@ export function TopBar() {
             <span className="muted">${(activeStatus.cost?.total_cost_usd ?? 0).toFixed(2)}</span>
           </>
         ) : (
-          active && <span className="muted">{active.pendingMessage ?? "sem sessão Claude nesta aba"}</span>
+          active?.pendingMessage && <span className="muted">{active.pendingMessage}</span>
         )}
       </div>
 
-      <div className="shortcuts muted" title="⌘T nova · ⌘W fechar · ⌘K limpar · ⌘B sessões · ⌘E eventos · ⌘1-9 trocar">
-        ⌘ atalhos
-      </div>
       <button className="icon-btn" title="Configurações (⌘,)" onClick={() => openModal({ kind: "settings" })}>
         ⚙
       </button>

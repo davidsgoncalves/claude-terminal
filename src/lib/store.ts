@@ -14,6 +14,7 @@ import {
   type HookSetup,
   type PermissionRequest,
   paneCount,
+  type BarPosition,
   type Layout,
   type QuestionItem,
   type RateLimits,
@@ -64,6 +65,8 @@ interface Store {
   paneAssign: string | null;
   /** Where the tab list is drawn. */
   layout: Layout;
+  /** Edge of the window holding the limits bar. */
+  barPosition: BarPosition;
   /** Thickness in pixels of the terminal frame in the group's colour. */
   terminalBorder: number;
   /** How the terminal area is divided. */
@@ -109,6 +112,7 @@ interface Store {
   setDefaultFolder: (id: string | null) => void;
   openModal: (m: Modal) => void;
   setLayout: (l: Layout) => void;
+  setBarPosition: (p: BarPosition) => void;
   openGroupMenu: (m: { x: number; y: number; groupId: string } | null) => void;
   setGroupColor: (id: string, color: string) => void;
   ungroupTabs: (id: string) => void;
@@ -145,6 +149,7 @@ export const useStore = create<Store>()(
       tabMenu: null,
       paneAssign: null,
       layout: "sidebar",
+      barPosition: "top",
       terminalBorder: 1,
       splitMode: "single",
       panes: [null, null, null, null],
@@ -295,6 +300,7 @@ export const useStore = create<Store>()(
       setDefaultFolder: (id) => set({ defaultFolderId: id }),
       openModal: (modal) => set({ modal }),
       setLayout: (layout) => set({ layout }),
+      setBarPosition: (barPosition) => set({ barPosition }),
       openGroupMenu: (groupMenu) => set({ groupMenu }),
       setGroupColor: (id, color) =>
         set((s) => ({ groups: s.groups.map((g) => (g.id === id ? { ...g, color } : g)) })),
@@ -409,6 +415,7 @@ export const useStore = create<Store>()(
         folders: s.folders,
         defaultFolderId: s.defaultFolderId,
         layout: s.layout,
+        barPosition: s.barPosition,
         terminalBorder: s.terminalBorder,
         splitMode: s.splitMode,
         panes: s.panes,
