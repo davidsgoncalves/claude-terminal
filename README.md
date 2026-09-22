@@ -43,8 +43,13 @@ Baixe o instalador da [última release](../../releases/latest):
 O app verifica atualizações ao abrir e a cada seis horas, e instala sozinho
 depois da sua confirmação.
 
-O build ainda não é assinado pela Apple. No primeiro uso, abra pelo menu de
-contexto do Finder e escolha Abrir.
+O build não é assinado por uma conta de desenvolvedor da Apple, então o macOS
+marca o download com o atributo de quarentena. Se o sistema disser que o app
+está danificado, remova a marca e abra normalmente:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/Claude Terminal.app"
+```
 
 ## Como ele conversa com o Claude Code
 
