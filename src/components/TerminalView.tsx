@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { terminals } from "../lib/terminals";
-import { takeRestored } from "../lib/restored";
+import { takePendingResume } from "../lib/restored";
 import type { Tab } from "../lib/types";
 
 interface Props {
@@ -62,9 +62,9 @@ export function TerminalView({ tab, visible, focused, rect, color, onFocus, onCo
 
     invoke("pty_spawn", { id: tab.id, cols: term.cols, rows: term.rows, cwd: tab.cwd })
       .then(() => {
-        // Only a tab restored from a previous run reopens its Claude session,
-        // and only on its first spawn. The PATH shim supplies the settings.
-        if (tab.claudeSessionId && takeRestored(tab.id)) {
+        // Resume only when this tab was opened to continue a session; the PATH
+        // shim supplies the settings, so no flags are needed here.
+        if (tab.claudeSessionId && takePendingResume(tab.id)) {
           invoke("pty_write", { id: tab.id, data: `claude --resume ${tab.claudeSessionId}\r` });
         }
       })

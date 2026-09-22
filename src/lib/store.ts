@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { fileStorage } from "./persist";
+import { markPendingResume } from "./restored";
 import {
   GROUP_COLORS,
   DEFAULT_TAB_TITLE,
@@ -229,7 +230,10 @@ export const useStore = create<Store>()(
             s.activeTabId === id ? (tabs.find((t) => t.state !== "dormant") ?? tabs[0])?.id ?? null : s.activeTabId;
           return { tabs, activeTabId, panes, statusByTab, permissions, questions, alerted };
         }),
-      activateTab: (id) =>
+      activateTab: (id) => {
+        // Reopening a closed tab continues the session it was running.
+        const previous = get().tabs.find((t) => t.id === id);
+        if (previous?.state === "dormant" && previous.claudeSessionId) markPendingResume([id]);
         set((s) => {
           const panes = [...s.panes];
           // A tab already on screen keeps its pane and takes focus there.
@@ -242,7 +246,8 @@ export const useStore = create<Store>()(
             panes,
             tabs: s.tabs.map((t) => (t.id === id && t.state === "dormant" ? { ...t, state: "shell" as TabState } : t)),
           };
-        }),
+        });
+      },
       renameTab: (id, title) => {
         set((s) => ({ tabs: s.tabs.map((t) => (t.id === id ? { ...t, title, customTitle: true } : t)) }));
         // Mirror the rename into Claude Code, but only with a session sitting
@@ -351,7 +356,9 @@ export const useStore = create<Store>()(
         set((s) => ({ focusedPane: index, activeTabId: s.panes[index] ?? s.activeTabId })),
       openTabMenu: (tabMenu) => set({ tabMenu }),
       startPaneAssign: (paneAssign) => set({ paneAssign, tabMenu: null }),
-      assignToPane: (tabId, index) =>
+      assignToPane: (tabId, index) => {
+        const previous = get().tabs.find((t) => t.id === tabId);
+        if (previous?.state === "dormant" && previous.claudeSessionId) markPendingResume([tabId]);
         set((s) => {
           const panes = [...s.panes];
           // A tab can only be in one pane; free the one it came from.
@@ -365,7 +372,8 @@ export const useStore = create<Store>()(
             activeTabId: tabId,
             tabs: s.tabs.map((t) => (t.id === tabId && t.state === "dormant" ? { ...t, state: "shell" as TabState } : t)),
           };
-        }),
+        });
+      },
       addQuestion: (q) => set((s) => ({ questions: [...s.questions, q] })),
       dropQuestion: ({ id, toolUseId, tabId }) =>
         set((s) => ({

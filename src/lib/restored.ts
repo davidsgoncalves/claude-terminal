@@ -1,15 +1,18 @@
 /**
- * Tabs that came back from disk at startup. Only these may auto-run
- * `claude --resume`, and only once: a tab that learned its session id while
- * running in this session must never re-resume itself.
+ * Tabs whose next shell should run `claude --resume`.
+ *
+ * A tab is added when it is restored from disk at startup, when it is opened
+ * from the session list, and when a closed tab is reopened. It is never added
+ * because a running session reported its id, which would make a live session
+ * try to resume itself.
  */
-const restored = new Set<string>();
+const pending = new Set<string>();
 
-export function markRestored(ids: string[]): void {
-  ids.forEach((id) => restored.add(id));
+export function markPendingResume(ids: string[]): void {
+  ids.forEach((id) => pending.add(id));
 }
 
-/** True the first time it is asked about a restored tab, false after. */
-export function takeRestored(id: string): boolean {
-  return restored.delete(id);
+/** True the first time it is asked about a marked tab, false after. */
+export function takePendingResume(id: string): boolean {
+  return pending.delete(id);
 }

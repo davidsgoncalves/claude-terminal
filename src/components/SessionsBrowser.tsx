@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { defaultGroupId, useStore } from "../lib/store";
 import { sessionLabel } from "../lib/titles";
+import { markPendingResume } from "../lib/restored";
 import type { SessionInfo, SessionMatch } from "../lib/types";
 
 function relativeDate(epochSeconds: number): string {
@@ -90,7 +91,13 @@ export function SessionsBrowser() {
   }, [sessions, query, snippetById, pinned]);
 
   const open = (s: SessionInfo) => {
-    addTab(defaultGroupId(), { cwd: s.cwd, claudeSessionId: s.id, title: label(s), customTitle: true });
+    const tabId = addTab(defaultGroupId(), {
+      cwd: s.cwd,
+      claudeSessionId: s.id,
+      title: label(s),
+      customTitle: true,
+    });
+    markPendingResume([tabId]);
   };
 
   return (
