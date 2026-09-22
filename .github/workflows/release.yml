@@ -97,5 +97,17 @@ jobs:
           releaseBody: "Instaladores para macOS e Linux. O app se atualiza sozinho a partir daqui."
           releaseDraft: false
           prerelease: false
-          includeUpdaterJson: true
+          # Composed once by the manifest job; parallel jobs overwrote each other.
+          includeUpdaterJson: false
           args: ${{ matrix.args }}
+
+  manifest:
+    needs: [decide, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compose the updater manifest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: v${{ needs.decide.outputs.version }}
+        run: node .github/scripts/manifest.mjs
