@@ -634,3 +634,5 @@ button.star.on { color: var(--accent); }
 }
 .about-list span { color: var(--muted); }
 .settings-section .row { display: flex; gap: 8px; }
+
+.update-bar.restart-failed { background: #3a352a; }

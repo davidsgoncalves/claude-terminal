@@ -64,3 +64,30 @@ fn which(program: &str) -> bool {
         .map(|o| o.status.success())
         .unwrap_or(false)
 }
+
+/// Restarts the app after an update.
+///
+/// On macOS the updater replaces the whole bundle, which leaves the running
+/// executable path pointing at a file that no longer exists, so re-executing it
+/// does nothing. Asking the system to open the bundle again works instead.
+#[tauri::command]
+pub fn restart_app(app: tauri::AppHandle) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+        // .../Claude Terminal.app/Contents/MacOS/<bin>
+        let bundle = exe
+            .ancestors()
+            .find(|p| p.extension().is_some_and(|e| e == "app"));
+        if let Some(bundle) = bundle {
+            Command::new("open")
+                .arg("-n")
+                .arg(bundle)
+                .spawn()
+                .map_err(|e| format!("não consegui reabrir o app: {e}"))?;
+            app.exit(0);
+            return Ok(());
+        }
+    }
+    tauri::process::restart(&tauri::Manager::env(&app));
+}

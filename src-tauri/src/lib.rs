@@ -45,6 +45,7 @@ pub fn run() {
             paths::home_dir,
             install::install_kind,
             install::install_package,
+            install::restart_app,
             mcp::editor_submit,
             mcp::editor_cancel,
         ])
