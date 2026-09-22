@@ -1,11 +1,73 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { getVersion } from "@tauri-apps/api/app";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { findUpdate, installKind, RELEASES_URL } from "../lib/update";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useStore } from "../lib/store";
 import { Modal } from "./Modal";
 import { AddFolder, FolderChoice } from "./FolderFields";
 import { BORDER_OPTIONS } from "../lib/types";
 import type { PathCheck } from "../lib/types";
+
+const INSTALL_LABEL: Record<string, string> = {
+  native: "instalação nativa",
+  appimage: "AppImage",
+  package: "pacote do sistema",
+};
+
+/** Version, how it was installed, and a manual check for a newer release. */
+function AboutTab() {
+  const [version, setVersion] = useState("…");
+  const [kind, setKind] = useState("…");
+  const [status, setStatus] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  useEffect(() => {
+    void getVersion().then(setVersion);
+    void installKind().then(setKind);
+  }, []);
+
+  const look = async () => {
+    setChecking(true);
+    setStatus(null);
+    try {
+      const found = await findUpdate();
+      setStatus(
+        found ? `Versão ${found.version} disponível. O aviso aparece no topo da janela.` : "Você está na versão mais recente.",
+      );
+    } catch (err) {
+      setStatus(`Não consegui verificar: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  return (
+    <section className="settings-section">
+      <h3>Versão</h3>
+      <ul className="about-list">
+        <li>
+          <span>Instalada</span>
+          <strong>{version}</strong>
+        </li>
+        <li>
+          <span>Formato</span>
+          <strong>{INSTALL_LABEL[kind] ?? kind}</strong>
+        </li>
+      </ul>
+      <div className="row">
+        <button className="ghost auto" onClick={() => void look()} disabled={checking}>
+          {checking ? "Verificando…" : "Procurar atualizações"}
+        </button>
+        <button className="ghost auto" onClick={() => void openUrl(RELEASES_URL)}>
+          Ver releases
+        </button>
+      </div>
+      {status && <p className="hint">{status}</p>}
+    </section>
+  );
+}
 
 function SettingsDialog({ onClose }: { onClose: () => void }) {
   const {
@@ -23,7 +85,7 @@ function SettingsDialog({ onClose }: { onClose: () => void }) {
   } = useStore();
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
-  const [tab, setTab] = useState<"aparencia" | "pastas">("aparencia");
+  const [tab, setTab] = useState<"aparencia" | "pastas" | "sobre">("aparencia");
 
   return (
     <Modal title="Configurações" onClose={onClose}>
@@ -34,7 +96,12 @@ function SettingsDialog({ onClose }: { onClose: () => void }) {
         <button className={tab === "pastas" ? "on" : ""} onClick={() => setTab("pastas")}>
           Pastas
         </button>
+        <button className={tab === "sobre" ? "on" : ""} onClick={() => setTab("sobre")}>
+          Sobre
+        </button>
       </nav>
+
+      {tab === "sobre" && <AboutTab />}
 
       {tab === "aparencia" && (
       <>

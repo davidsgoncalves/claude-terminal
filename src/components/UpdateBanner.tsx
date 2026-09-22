@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { getVersion } from "@tauri-apps/api/app";
-import { check, type Update } from "@tauri-apps/plugin-updater";
+import type { Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
+import { findUpdate } from "../lib/update";
 
-const MANIFEST =
-  "https://github.com/davidsgoncalves/claude-terminal/releases/latest/download/latest.json";
 const CHECK_EVERY_MS = 6 * 60 * 60 * 1000;
 
 type Phase = "idle" | "found" | "working" | "ready" | "handed-off" | "error";
@@ -13,17 +11,6 @@ type Phase = "idle" | "found" | "working" | "ready" | "handed-off" | "error";
 interface PackageUpdate {
   version: string;
   url: string;
-}
-
-/** Compares dotted versions without treating them as numbers end to end. */
-function isNewer(candidate: string, current: string): boolean {
-  const a = candidate.split(".").map(Number);
-  const b = current.split(".").map(Number);
-  for (let i = 0; i < Math.max(a.length, b.length); i++) {
-    const diff = (a[i] ?? 0) - (b[i] ?? 0);
-    if (diff !== 0) return diff > 0;
-  }
-  return false;
 }
 
 /**
@@ -39,28 +26,14 @@ export function UpdateBanner() {
   const [message, setMessage] = useState<string | null>(null);
 
   const look = useCallback(async () => {
-    const kind = await invoke<string>("install_kind").catch(() => "native");
-    if (kind === "package") {
-      try {
-        const manifest = await fetch(MANIFEST, { cache: "no-store" }).then((r) => r.json());
-        const url = manifest?.platforms?.["linux-x86_64-deb"]?.url;
-        const current = await getVersion();
-        if (url && isNewer(manifest.version, current)) {
-          setPkg({ version: manifest.version, url });
-          setPhase("found");
-        }
-      } catch (err) {
-        console.warn("update check failed", err);
-      }
-      return;
-    }
     try {
-      const found = await check();
-      if (found) {
-        setUpdate(found);
-        setPhase("found");
-      }
+      const found = await findUpdate();
+      if (!found) return;
+      if (found.kind === "native") setUpdate(found.update);
+      else setPkg({ version: found.version, url: found.url });
+      setPhase("found");
     } catch (err) {
+      // No release yet, or no network: nothing worth interrupting for.
       console.warn("update check failed", err);
     }
   }, []);
