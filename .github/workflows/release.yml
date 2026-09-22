@@ -10,6 +10,12 @@ on:
 permissions:
   contents: write
 
+# A second push while a release is building would build the same version twice.
+# Queuing them means the later run sees the tag and stops at the decide job.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   decide:
     runs-on: ubuntu-latest
