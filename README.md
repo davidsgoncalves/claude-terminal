@@ -1,0 +1,138 @@
+# Claude Terminal
+
+Terminal com abas agrupadas por assunto, feito para quem roda várias sessões do
+Claude Code ao mesmo tempo. Cada aba mostra em que estado está a sessão, os
+pedidos de permissão de todas elas caem numa fila única, e o histórico de
+sessões antigas é pesquisável por conteúdo.
+
+Funciona no macOS e no Linux. É um app Tauri com xterm.js sobre o seu próprio
+shell, então `.zshrc`, aliases e tudo mais continuam valendo.
+
+## O que ele faz
+
+- **Estado por sessão.** A bolinha de cada aba diz se o Claude está
+  trabalhando, esperando permissão, esperando você ou parado.
+- **Fila de permissões.** Todo pedido de permissão de todas as abas aparece num
+  painel único, com o comando completo. Você responde ali, sem trocar de aba.
+  Comandos com padrão destrutivo ficam marcados e exigem decisão na própria aba.
+- **Grupos de abas.** Nome, cor e pasta base por grupo, no estilo dos grupos de
+  aba do Chrome. A lista fica na lateral ou numa barra superior, à sua escolha.
+- **Telas divididas.** Até quatro terminais ao mesmo tempo, em cinco arranjos.
+  Botão direito em qualquer terminal escolhe o painel pelo número.
+- **Sessões antigas.** Lista com título, pasta e branch, busca no conteúdo
+  completo das conversas e retomada com um clique. Fixe as que você usa sempre.
+- **Editor em painel.** O Claude abre um editor embaixo do terminal para você
+  preencher ou revisar algo, em texto, planilha, JSON ou XML, e recebe de volta
+  o que você escreveu.
+- **Limites de uso.** Consumo das janelas de 5 horas e 7 dias no topo, contexto
+  e custo por aba.
+- **Avisos do sistema.** Notificação quando uma sessão termina ou pede
+  permissão com a janela fora de foco, e alerta para sessão parada esperando
+  você há muito tempo.
+
+## Instalação
+
+Baixe o instalador da [última release](../../releases/latest):
+
+| Sistema | Arquivo |
+| --- | --- |
+| macOS Apple Silicon | `.dmg` com `aarch64` no nome |
+| macOS Intel | `.dmg` com `x64` no nome |
+| Linux | `.AppImage` ou `.deb` |
+
+O app verifica atualizações ao abrir e a cada seis horas, e instala sozinho
+depois da sua confirmação.
+
+O build ainda não é assinado pela Apple. No primeiro uso, abra pelo menu de
+contexto do Finder e escolha Abrir.
+
+## Como ele conversa com o Claude Code
+
+Nada do seu `~/.claude/settings.json` é alterado. O app escreve os próprios
+arquivos em `~/Library/Application Support/claude-terminal` (ou
+`~/.config/claude-terminal` no Linux) e coloca um atalho `claude` no PATH de
+cada aba, além de definir uma função de shell com o mesmo nome. Qualquer
+`claude` digitado numa aba passa por ele e ganha:
+
+- `--settings` com os hooks que alimentam o estado das abas, a fila de
+  permissões e a barra de limites;
+- `--mcp-config` com o servidor MCP do próprio app;
+- uma statusline que espelha os dados para o app e delega para a que você já
+  usava.
+
+Sessões abertas fora do app não são afetadas.
+
+### Ferramentas que o Claude ganha
+
+| Ferramenta | Para quê |
+| --- | --- |
+| `open_editor` | Abre o editor em painel e devolve o texto final. Salva o arquivo quando recebe um caminho. Detecta planilha, JSON e XML pela extensão |
+| `list_sessions` | Lista as sessões gravadas na máquina, com título e pasta |
+
+No início de cada sessão o Claude recebe um contexto dizendo que está rodando
+aqui dentro e que deve usar o editor em painel no lugar de pedir um editor
+externo.
+
+## Atalhos
+
+| Tecla | Ação |
+| --- | --- |
+| `⌘T` | Nova sessão |
+| `⌘W` | Fechar aba |
+| `⌘1` a `⌘9` | Trocar de aba |
+| `⌘⇧[` e `⌘⇧]` | Aba anterior e próxima |
+| `⌘B` | Mostrar ou esconder a lista de sessões |
+| `⌘E` | Mostrar ou esconder o painel da direita |
+| `⌘K` | Limpar a tela do terminal |
+| `⌘,` | Configurações |
+
+## Onde ficam os dados
+
+Tudo em `~/Library/Application Support/claude-terminal` no macOS, ou
+`~/.config/claude-terminal` no Linux:
+
+| Arquivo | Conteúdo |
+| --- | --- |
+| `data.db` | SQLite com o layout, os eventos de hook, as métricas de permissão e o índice de busca |
+| `hooks.json` | Configuração passada ao Claude Code via `--settings` |
+| `mcp.json` | Registro do servidor MCP |
+| `bin/claude` | Atalho que injeta as configurações |
+| `forward.sh`, `permission.sh`, `statusline.sh`, `session_start.sh` | Scripts chamados pelos hooks |
+
+Os transcripts continuam onde o Claude Code os grava, em `~/.claude/projects`.
+O banco guarda só o índice.
+
+## Desenvolvimento
+
+Requer Node 22, pnpm e Rust estável.
+
+```bash
+pnpm install
+pnpm tauri dev
+```
+
+Verificações que o CI roda:
+
+```bash
+pnpm exec tsc --noEmit
+cargo fmt --manifest-path src-tauri/Cargo.toml --check
+cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+```
+
+### Publicar uma versão
+
+O workflow `release` compila macOS `aarch64` e `x64` e Linux `x64`, assina os
+pacotes e publica a release com o `latest.json` que o auto-update consome.
+
+```bash
+# ajuste a versão em src-tauri/tauri.conf.json e package.json
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+Os segredos `TAURI_SIGNING_PRIVATE_KEY` e `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`
+precisam existir no repositório para a assinatura funcionar.
+
+## Licença
+
+MIT.
