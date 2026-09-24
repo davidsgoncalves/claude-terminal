@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useStore } from "../lib/store";
 import { GROUP_COLORS } from "../lib/types";
+import { describeRule } from "../lib/permRules";
 
 /** Right-click menu for a group: colour, rename, collapse and removal. */
 export function GroupMenu() {
-  const { groupMenu, openGroupMenu, groups, tabs, setGroupColor, renameGroup, toggleGroupCollapsed, setGroupHidden, ungroupTabs, closeGroup } =
+  const { groupMenu, openGroupMenu, groups, tabs, setGroupColor, renameGroup, toggleGroupCollapsed, setGroupHidden, ungroupTabs, closeGroup, removeGroupRule } =
     useStore();
   const [confirming, setConfirming] = useState(false);
   const [renaming, setRenaming] = useState(false);
@@ -108,6 +109,21 @@ export function GroupMenu() {
       >
         Ocultar grupo
       </button>
+
+      {(group.allowRules?.length ?? 0) > 0 && (
+        <>
+          <div className="menu-sep" />
+          <div className="menu-heading">Permitido sem perguntar</div>
+          {group.allowRules!.map((r) => (
+            <div key={describeRule(r)} className="menu-rule">
+              <code title={describeRule(r)}>{describeRule(r)}</code>
+              <button className="icon-btn" title="Remover regra" onClick={() => removeGroupRule(group.id, r)}>
+                ×
+              </button>
+            </div>
+          ))}
+        </>
+      )}
 
       <div className="menu-sep" />
 

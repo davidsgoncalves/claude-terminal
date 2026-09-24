@@ -705,3 +705,13 @@ button.star.on { color: var(--accent); }
 .switcher-tag { font-size: 10px; color: var(--muted); border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; flex-shrink: 0; }
 .switcher-state { font-size: 10px; color: var(--muted); flex-shrink: 0; }
 .switcher-row.state-dormant .switcher-title { color: var(--muted); }
+
+/* ---------- group permission rules ---------- */
+.perm-always {
+  margin-top: 6px; width: 100%; background: transparent; border: 1px dashed var(--border); color: var(--muted);
+  border-radius: 5px; padding: 4px 8px; font-size: 11px; cursor: pointer; text-align: left;
+}
+.perm-always:hover:not(:disabled) { color: var(--fg); border-color: var(--accent); }
+.perm-always:disabled { opacity: .4; cursor: default; }
+.menu-rule { display: flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; max-width: 260px; }
+.menu-rule code { flex: 1; min-width: 0; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }

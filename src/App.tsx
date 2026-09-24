@@ -31,6 +31,7 @@ import {
 } from "./lib/detach";
 import { notify } from "./lib/notify";
 import { describeTool } from "./lib/describe";
+import { ruleAllows } from "./lib/permRules";
 import { syncTabTitle } from "./lib/titles";
 import {
   WATCHDOG_MINUTES,
@@ -127,8 +128,13 @@ function useBackendBridge() {
 
     listen<PermissionRequest>("permission-request", (ev) => {
       const req = ev.payload;
-      store().addPermission(req);
       const tab = store().tabs.find((t) => t.id === req.tab_id);
+      const group = store().groups.find((g) => g.id === tab?.groupId);
+      if (group && ruleAllows(group.allowRules, req.payload)) {
+        void invoke("permission_decide", { id: req.id, decision: "allow", reason: `Regra do grupo ${group.name}` });
+        return;
+      }
+      store().addPermission(req);
       const summary = describeTool(req.payload.tool_name, req.payload.tool_input);
       store().patchTab(req.tab_id ?? "", {
         state: "permission",
