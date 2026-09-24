@@ -425,9 +425,6 @@ pub fn write_scripts() -> Result<HookSetup, String> {
                 "shellhive": {
                     "type": "http",
                     "url": format!("http://127.0.0.1:{PORT}/mcp"),
-                    // Claude Code expands this per session, so a tool call says
-                    // which tab it came from, as the hook scripts already do.
-                    "headers": { "X-Tab-Id": "${CLAUDE_TERMINAL_TAB_ID:-}" }
                 }
             }
         }))
@@ -449,7 +446,15 @@ pub fn write_scripts() -> Result<HookSetup, String> {
              \x20 echo 'claude nao encontrado no PATH' >&2\n\
              \x20 exit 127\n\
              }}\n\
-             exec \"$REAL\" --settings {settings} --mcp-config {mcp} \"$@\"\n",
+             MCP={mcp}\n\
+             # Claude Code does not expand variables in a --mcp-config file, so a\n\
+             # tab gets its own copy with its id written in, for the MCP server\n\
+             # to know which tab a tool call comes from.\n\
+             if [ -n \"${{CLAUDE_TERMINAL_TAB_ID:-}}\" ]; then\n\
+             \x20 TAB_MCP=\"${{TMPDIR:-/tmp}}/shellhive-mcp-$CLAUDE_TERMINAL_TAB_ID.json\"\n\
+             \x20 printf '{{\"mcpServers\":{{\"shellhive\":{{\"type\":\"http\",\"url\":\"http://127.0.0.1:{PORT}/mcp\",\"headers\":{{\"X-Tab-Id\":\"%s\"}}}}}}}}' \"$CLAUDE_TERMINAL_TAB_ID\" > \"$TAB_MCP\" && MCP=\"$TAB_MCP\"\n\
+             fi\n\
+             exec \"$REAL\" --settings {settings} --mcp-config \"$MCP\" \"$@\"\n",
             shim_dir = shell_single_quote(&bin_dir.to_string_lossy()),
             settings = shell_single_quote(&hooks_json.to_string_lossy()),
             mcp = shell_single_quote(&mcp_json.to_string_lossy()),
