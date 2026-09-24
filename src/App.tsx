@@ -17,7 +17,7 @@ import { PaneOverlay } from "./components/PaneOverlay";
 import { EmptyPane } from "./components/EmptyPane";
 import { EditorPanel } from "./components/EditorPanel";
 import { TerminalSearch } from "./components/TerminalSearch";
-import { defaultGroupId, ensureUngrouped, openSessionInGroup, useStore } from "./lib/store";
+import { defaultGroupId, ensureUngrouped, openSession, openSessionInGroup, useStore } from "./lib/store";
 import { tabPatchFor } from "./lib/hookState";
 import { decodeBase64, serializers, terminals } from "./lib/terminals";
 import {
@@ -401,6 +401,16 @@ function useMiniPanel() {
   }, [on]);
 }
 
+/** Records the group of every tab's Claude session whenever tabs change. */
+function useSessionGroups() {
+  useEffect(() => {
+    useStore.getState().rememberSessionGroups();
+    return useStore.subscribe((s, prev) => {
+      if (s.tabs !== prev.tabs) s.rememberSessionGroups();
+    });
+  }, []);
+}
+
 function useEditorRequests(): [EditorRequest | null, () => void] {
   const [request, setRequest] = useState<EditorRequest | null>(null);
   useEffect(() => {
@@ -416,6 +426,7 @@ function App() {
   const [editorRequest, closeEditor] = useEditorRequests();
   useBackendBridge();
   useTitlePoll();
+  useSessionGroups();
   useWatchdog();
   useShortcuts();
   useDetachedWindows();
@@ -478,6 +489,7 @@ function App() {
                   color={colorOf(t)}
                   onFocus={() => slot !== -1 && focusPane(slot)}
                   onDropTab={(id) => slot !== -1 && id !== t.id && useStore.getState().assignToPane(id, slot)}
+                  onDropSession={(ref) => slot !== -1 && openSession(ref, { pane: slot })}
                   onContextMenu={(e) => {
                     e.preventDefault();
                     useStore.getState().openTabMenu({ x: e.clientX, y: e.clientY, tabId: t.id });

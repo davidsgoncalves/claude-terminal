@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { defaultGroupId, openSessionInGroup, useStore } from "../lib/store";
+import { defaultGroupId, openSession, openSessionInGroup, sessionFromDrag, useStore } from "../lib/store";
 import { paneCount, paneRect } from "../lib/types";
-import { carriesTab } from "../lib/termExtras";
+import { carriesSession, carriesTab } from "../lib/termExtras";
 
 /** Placeholder shown in a pane with no terminal, with its own opener. */
 export function EmptyPane({ index }: { index: number }) {
@@ -39,7 +39,7 @@ export function EmptyPane({ index }: { index: number }) {
       className={`empty-pane ${dropping ? "drop-target" : ""}`}
       style={paneRect(splitMode, index)}
       onDragOver={(e) => {
-        if (!carriesTab(e.dataTransfer)) return;
+        if (!carriesTab(e.dataTransfer) && !carriesSession(e.dataTransfer)) return;
         e.preventDefault();
         setDropping(true);
       }}
@@ -47,9 +47,11 @@ export function EmptyPane({ index }: { index: number }) {
       onDrop={(e) => {
         setDropping(false);
         const dragged = e.dataTransfer.getData("text/tab-id");
-        if (!dragged) return;
+        const session = sessionFromDrag(e.dataTransfer);
+        if (!dragged && !session) return;
         e.preventDefault();
-        assignToPane(dragged, index);
+        if (dragged) assignToPane(dragged, index);
+        else if (session) openSession(session, { pane: index });
       }}
     >
       {!open ? (

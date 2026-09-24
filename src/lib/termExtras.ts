@@ -95,6 +95,11 @@ export function carriesTab(data: DataTransfer): boolean {
   return [...data.types].includes("text/tab-id");
 }
 
+/** True when a drag carries a saved session from the sessions list. */
+export function carriesSession(data: DataTransfer): boolean {
+  return [...data.types].includes("application/x-claude-session");
+}
+
 /** True when a drag carries files from outside the app, not a tab. */
 export function carriesFiles(data: DataTransfer): boolean {
   return [...data.types].includes("Files");

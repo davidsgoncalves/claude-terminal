@@ -3,7 +3,9 @@
     "version": "0.1.15",
     "date": "2026-09-24",
     "items": [
-      "O mini painel, as janelas destacadas e a janela principal voltam a fechar pelo botão, pelo atalho e pela configuração."
+      "O mini painel, as janelas destacadas e a janela principal voltam a fechar pelo botão, pelo atalho e pela configuração.",
+      "Sessões abertas pela lista da direita voltam ao último grupo em que estavam, ou ao grupo da pasta delas. Se já estiverem abertas, o app vai para a aba em vez de duplicar.",
+      "Sessões da lista da direita podem ser arrastadas para um grupo ou para um painel."
     ]
   },
   {

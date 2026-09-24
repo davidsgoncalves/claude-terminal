@@ -6,7 +6,8 @@ import { SerializeAddon } from "@xterm/addon-serialize";
 import { SearchAddon } from "@xterm/addon-search";
 import { searches, serializers, terminals, TERMINAL_OPTIONS } from "../lib/terminals";
 import { actionOf, isAppShortcut } from "../lib/shortcuts";
-import { attachLinks, carriesFiles, carriesTab, fixLinuxInput, pasteDroppedFiles } from "../lib/termExtras";
+import { sessionFromDrag, type SessionRef } from "../lib/store";
+import { attachLinks, carriesFiles, carriesSession, carriesTab, fixLinuxInput, pasteDroppedFiles } from "../lib/termExtras";
 import { takePendingResume } from "../lib/restored";
 import type { Tab } from "../lib/types";
 
@@ -23,9 +24,11 @@ interface Props {
   onContextMenu: (e: React.MouseEvent) => void;
   /** A tab dragged from the list was dropped here. */
   onDropTab: (tabId: string) => void;
+  /** A saved session dragged from the sessions list was dropped here. */
+  onDropSession: (ref: SessionRef) => void;
 }
 
-export function TerminalView({ tab, visible, focused, rect, color, onFocus, onContextMenu, onDropTab }: Props) {
+export function TerminalView({ tab, visible, focused, rect, color, onFocus, onContextMenu, onDropTab, onDropSession }: Props) {
   const [dropping, setDropping] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const termRef = useRef<Terminal | null>(null);
@@ -123,7 +126,7 @@ export function TerminalView({ tab, visible, focused, rect, color, onFocus, onCo
       onMouseDown={onFocus}
       onContextMenu={onContextMenu}
       onDragOver={(e) => {
-        if (carriesTab(e.dataTransfer)) {
+        if (carriesTab(e.dataTransfer) || carriesSession(e.dataTransfer)) {
           e.preventDefault();
           setDropping(true);
         } else if (carriesFiles(e.dataTransfer)) e.preventDefault();
@@ -135,6 +138,12 @@ export function TerminalView({ tab, visible, focused, rect, color, onFocus, onCo
         if (dragged) {
           e.preventDefault();
           onDropTab(dragged);
+          return;
+        }
+        const session = sessionFromDrag(e.dataTransfer);
+        if (session) {
+          e.preventDefault();
+          onDropSession(session);
           return;
         }
         if (!carriesFiles(e.dataTransfer)) return;

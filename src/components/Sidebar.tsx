@@ -1,5 +1,5 @@
 import { useState, type DragEvent } from "react";
-import { openSessionInGroup, useStore } from "../lib/store";
+import { openSession, openSessionInGroup, sessionFromDrag, useStore } from "../lib/store";
 import { droppedOutside } from "../lib/detach";
 import { HiddenGroups } from "./HiddenGroups";
 import { STATE_LABEL, type GitInfo, type Group, type StatusPayload, type Subagent, type Tab } from "../lib/types";
@@ -173,7 +173,9 @@ function GroupSection({ group, tabs, activeTabId }: { group: Group; tabs: Tab[];
     e.preventDefault();
     setOver(false);
     const id = e.dataTransfer.getData("text/tab-id");
-    if (id) moveTab(id, group.id);
+    if (id) return moveTab(id, group.id);
+    const session = sessionFromDrag(e.dataTransfer);
+    if (session) openSession(session, { groupId: group.id });
   };
 
   const pending = tabs.filter((t) => t.state === "permission").length;

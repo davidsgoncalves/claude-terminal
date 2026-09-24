@@ -38,6 +38,7 @@ import {
 const newId = () => crypto.randomUUID();
 
 const CLOSED_TABS_MAX = 20;
+const SESSION_GROUPS_MAX = 2000;
 
 /** What is needed to bring a closed tab back. */
 interface ClosedTab {
@@ -137,6 +138,8 @@ interface Store {
   subagentsByTab: Record<string, Subagent[]>;
   /** Tab whose Cmd+F bar is open. */
   searchTabId: string | null;
+  /** Last group each Claude session sat in, so reopening it lands there. */
+  sessionGroups: Record<string, string>;
   /** Prompts kept for reuse. */
   prompts: SavedPrompt[];
   /** Recently closed tabs, newest last, for Cmd+Shift+T. */
@@ -168,6 +171,7 @@ interface Store {
   reopenClosedTab: () => void;
   openSearch: (tabId: string | null) => void;
   setSubagents: (tabId: string, list: Subagent[]) => void;
+  rememberSessionGroups: () => void;
   addPrompt: (name: string, text: string) => void;
   updatePrompt: (id: string, patch: Partial<Omit<SavedPrompt, "id">>) => void;
   removePrompt: (id: string) => void;
@@ -245,6 +249,7 @@ export const useStore = create<Store>()(
       gitByTab: {},
       closedTabs: [],
       prompts: [],
+      sessionGroups: {},
       searchTabId: null,
       subagentsByTab: {},
 
@@ -414,6 +419,22 @@ export const useStore = create<Store>()(
         set((s) => ({ detached: s.detached.filter((d) => d !== id) }));
         const tab = get().tabs.find((t) => t.id === id);
         if (tab && tab.state !== "dormant") get().activateTab(id);
+      },
+      rememberSessionGroups: () => {
+        const s = get();
+        let next: Record<string, string> | null = null;
+        for (const t of s.tabs) {
+          if (!t.claudeSessionId || s.sessionGroups[t.claudeSessionId] === t.groupId) continue;
+          next ??= { ...s.sessionGroups };
+          next[t.claudeSessionId] = t.groupId;
+        }
+        if (!next) return;
+        // Keep the newest entries only; object keys keep insertion order.
+        const keys = Object.keys(next);
+        if (keys.length > SESSION_GROUPS_MAX) {
+          for (const k of keys.slice(0, keys.length - SESSION_GROUPS_MAX)) delete next[k];
+        }
+        set({ sessionGroups: next });
       },
       addPrompt: (name, text) => set((s) => ({ prompts: [...s.prompts, { id: newId(), name, text }] })),
       updatePrompt: (id, patch) =>
@@ -639,6 +660,7 @@ export const useStore = create<Store>()(
         miniPanel: s.miniPanel,
         miniBounds: s.miniBounds,
         prompts: s.prompts,
+        sessionGroups: s.sessionGroups,
         splitMode: s.splitMode,
         panes: s.panes,
       }),
@@ -691,4 +713,54 @@ export function defaultGroupId(): string {
   if (s.groups[0]) return s.groups[0].id;
   ensureUngrouped();
   return UNGROUPED_ID;
+}
+
+/** A Claude session to open, as the sessions list and a drag describe it. */
+export interface SessionRef {
+  id: string;
+  cwd: string | null;
+  title: string;
+}
+
+/**
+ * Opens a saved Claude session. A session already in a tab goes to that tab.
+ * Otherwise it lands in the group given, else the last group it sat in, else
+ * the group whose base folder is its folder, else the catch-all group. With a
+ * pane index, it opens in that pane.
+ */
+export function openSession(ref: SessionRef, opts: { groupId?: string; pane?: number } = {}): void {
+  const s = useStore.getState();
+  const existing = s.tabs.find((t) => t.claudeSessionId === ref.id);
+  if (existing) {
+    if (opts.groupId && opts.groupId !== existing.groupId) s.moveTab(existing.id, opts.groupId);
+    if (opts.pane !== undefined) s.assignToPane(existing.id, opts.pane);
+    else s.activateTab(existing.id);
+    return;
+  }
+  const exists = (id: string | undefined) => !!id && s.groups.some((g) => g.id === id);
+  const remembered = s.sessionGroups[ref.id];
+  const byFolder = s.groups.find(
+    (g) => !g.fixed && g.folderId && s.folders.find((f) => f.id === g.folderId)?.path === ref.cwd,
+  )?.id;
+  let groupId = [opts.groupId, remembered, byFolder].find(exists);
+  if (!groupId) {
+    ensureUngrouped();
+    groupId = UNGROUPED_ID;
+  }
+  const tabId = s.addTab(groupId, { cwd: ref.cwd, claudeSessionId: ref.id, title: ref.title, customTitle: true });
+  markPendingResume([tabId]);
+  if (opts.pane !== undefined) useStore.getState().assignToPane(tabId, opts.pane);
+}
+
+/** Drag payload type for a session from the sessions list. */
+export const SESSION_DRAG = "application/x-claude-session";
+
+export function sessionFromDrag(data: DataTransfer): SessionRef | null {
+  const raw = data.getData(SESSION_DRAG);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as SessionRef;
+  } catch {
+    return null;
+  }
 }
