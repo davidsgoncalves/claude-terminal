@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { fileStorage } from "./persist";
 import { markPendingResume } from "./restored";
+import { closeDetachedWindow, focusDetachedWindow, openDetachedWindow } from "./detach";
 import {
   GROUP_COLORS,
   DEFAULT_TAB_TITLE,
@@ -78,6 +79,8 @@ interface Store {
   focusedPane: number;
   /** Questions Claude is waiting on, shown next to the permissions. */
   questions: QuestionItem[];
+  /** Tabs whose terminal is shown in a window of its own. */
+  detached: string[];
 
   addGroup: (name?: string, folderId?: string | null) => string;
   setGroupFolder: (id: string, folderId: string | null) => void;
@@ -94,6 +97,8 @@ interface Store {
   activateTab: (id: string) => void;
   renameTab: (id: string, title: string) => void;
   moveTab: (id: string, groupId: string) => void;
+  detachTab: (id: string, at?: { x: number; y: number }) => void;
+  reattachTab: (id: string) => void;
   patchTab: (id: string, patch: Partial<Tab>) => void;
 
   toggleSidebar: () => void;
@@ -156,6 +161,7 @@ export const useStore = create<Store>()(
       panes: [null, null, null, null],
       focusedPane: 0,
       questions: [],
+      detached: [],
 
       addGroup: (name, folderId = null) => {
         const id = newId();
@@ -226,11 +232,14 @@ export const useStore = create<Store>()(
           const permissions = s.permissions.filter((p) => p.tab_id !== id);
           const questions = s.questions.filter((q) => q.tab_id !== id);
           const alerted = s.alerted.filter((a) => a !== id);
+          if (s.detached.includes(id)) closeDetachedWindow(id);
+          const detached = s.detached.filter((d) => d !== id);
           const activeTabId =
             s.activeTabId === id ? (tabs.find((t) => t.state !== "dormant") ?? tabs[0])?.id ?? null : s.activeTabId;
-          return { tabs, activeTabId, panes, statusByTab, permissions, questions, alerted };
+          return { tabs, activeTabId, panes, statusByTab, permissions, questions, alerted, detached };
         }),
       activateTab: (id) => {
+        if (get().detached.includes(id)) return focusDetachedWindow(id);
         // Reopening a closed tab continues the session it was running.
         const previous = get().tabs.find((t) => t.id === id);
         if (previous?.state === "dormant" && previous.claudeSessionId) markPendingResume([id]);
@@ -261,6 +270,23 @@ export const useStore = create<Store>()(
       },
       moveTab: (id, groupId) =>
         set((s) => ({ tabs: s.tabs.map((t) => (t.id === id ? { ...t, groupId } : t)) })),
+      detachTab: (id, at) => {
+        const s = get();
+        const tab = s.tabs.find((t) => t.id === id);
+        if (!tab || tab.state === "dormant" || s.detached.includes(id)) return;
+        openDetachedWindow(id, tab.title, at);
+        set((s) => {
+          const panes = s.panes.map((p) => (p === id ? null : p));
+          const activeTabId = s.activeTabId === id ? (panes.find((p) => p != null) ?? null) : s.activeTabId;
+          return { detached: [...s.detached, id], panes, activeTabId };
+        });
+      },
+      reattachTab: (id) => {
+        if (!get().detached.includes(id)) return;
+        set((s) => ({ detached: s.detached.filter((d) => d !== id) }));
+        const tab = get().tabs.find((t) => t.id === id);
+        if (tab && tab.state !== "dormant") get().activateTab(id);
+      },
       patchTab: (id, patch) =>
         set((s) => ({ tabs: s.tabs.map((t) => (t.id === id ? { ...t, ...patch } : t)) })),
 
@@ -322,6 +348,7 @@ export const useStore = create<Store>()(
           if (id === UNGROUPED_ID) return s;
           const doomed = new Set(s.tabs.filter((t) => t.groupId === id).map((t) => t.id));
           const tabs = s.tabs.filter((t) => !doomed.has(t.id));
+          s.detached.filter((d) => doomed.has(d)).forEach(closeDetachedWindow);
           const statusByTab = Object.fromEntries(
             Object.entries(s.statusByTab).filter(([k]) => !doomed.has(k)),
           );
@@ -332,6 +359,7 @@ export const useStore = create<Store>()(
             permissions: s.permissions.filter((p) => !p.tab_id || !doomed.has(p.tab_id)),
             questions: s.questions.filter((q) => !q.tab_id || !doomed.has(q.tab_id)),
             alerted: s.alerted.filter((a) => !doomed.has(a)),
+            detached: s.detached.filter((d) => !doomed.has(d)),
             activeTabId: doomed.has(s.activeTabId ?? "") ? (tabs[0]?.id ?? null) : s.activeTabId,
           };
         }),

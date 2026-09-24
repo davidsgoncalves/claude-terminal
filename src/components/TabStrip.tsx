@@ -1,9 +1,11 @@
 import { useState, type DragEvent } from "react";
 import { openSessionInGroup, useStore } from "../lib/store";
+import { droppedOutside } from "../lib/detach";
 import { STATE_LABEL, type Group, type Tab } from "../lib/types";
 
 function StripTab({ tab, active }: { tab: Tab; active: boolean }) {
-  const { activateTab, closeTab, openTabMenu } = useStore();
+  const { activateTab, closeTab, openTabMenu, detachTab } = useStore();
+  const isDetached = useStore((s) => s.detached.includes(tab.id));
   const stale = useStore((s) => s.alerted.includes(tab.id));
   const pct = useStore((s) => s.statusByTab[tab.id]?.context_window?.used_percentage);
   const showPct = pct != null && (active || pct >= 70);
@@ -12,6 +14,9 @@ function StripTab({ tab, active }: { tab: Tab; active: boolean }) {
       className={`strip-tab state-${tab.state} ${active ? "active" : ""} ${stale ? "stale" : ""}`}
       draggable
       onDragStart={(e) => e.dataTransfer.setData("text/tab-id", tab.id)}
+      onDragEnd={(e) => {
+        if (e.dataTransfer.dropEffect === "none" && droppedOutside(e)) detachTab(tab.id, { x: e.screenX, y: e.screenY });
+      }}
       onClick={() => activateTab(tab.id)}
       onAuxClick={(e) => {
         if (e.button === 1) closeTab(tab.id);
@@ -25,6 +30,11 @@ function StripTab({ tab, active }: { tab: Tab; active: boolean }) {
     >
       <span className="dot" />
       <span className="strip-title">{tab.title}</span>
+      {isDetached && (
+        <span className="detached-mark" title="Em outra janela">
+          ↗
+        </span>
+      )}
       {showPct && <span className="strip-ctx">{Math.round(pct)}%</span>}
       <button
         className="strip-close"

@@ -4,7 +4,7 @@ import { paneCount, paneRect } from "../lib/types";
 
 /** Placeholder shown in a pane with no terminal, with its own opener. */
 export function EmptyPane({ index }: { index: number }) {
-  const { tabs, panes, splitMode, groups, assignToPane, focusPane } = useStore();
+  const { tabs, panes, splitMode, groups, detached, assignToPane, focusPane } = useStore();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -23,7 +23,7 @@ export function EmptyPane({ index }: { index: number }) {
   }, [open]);
 
   const shown = new Set(panes.slice(0, paneCount(splitMode)).filter(Boolean) as string[]);
-  const available = tabs.filter((t) => !shown.has(t.id));
+  const available = tabs.filter((t) => !shown.has(t.id) && !detached.includes(t.id));
 
   const startNew = () => {
     setOpen(false);

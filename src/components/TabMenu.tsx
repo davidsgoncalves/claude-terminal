@@ -1,9 +1,10 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "../lib/store";
+import { closeDetachedWindow } from "../lib/detach";
 
 /** Right-click menu for a tab or a terminal pane. */
 export function TabMenu() {
-  const { tabMenu, openTabMenu, startPaneAssign, closeTab, tabs } = useStore();
+  const { tabMenu, openTabMenu, startPaneAssign, closeTab, tabs, detached, detachTab } = useStore();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -23,6 +24,7 @@ export function TabMenu() {
   if (!tabMenu) return null;
   const tab = tabs.find((t) => t.id === tabMenu.tabId);
   if (!tab) return null;
+  const isDetached = detached.includes(tab.id);
 
   return (
     <div
@@ -31,9 +33,34 @@ export function TabMenu() {
       style={{ left: Math.min(tabMenu.x, window.innerWidth - 230), top: tabMenu.y + 4 }}
     >
       <div className="menu-heading">{tab.title}</div>
-      <button className="menu-item" onClick={() => startPaneAssign(tab.id)}>
-        Colocar em um painel…
-      </button>
+      {isDetached ? (
+        <button
+          className="menu-item"
+          onClick={() => {
+            closeDetachedWindow(tab.id);
+            openTabMenu(null);
+          }}
+        >
+          Voltar para esta janela
+        </button>
+      ) : (
+        <>
+          <button className="menu-item" onClick={() => startPaneAssign(tab.id)}>
+            Colocar em um painel…
+          </button>
+          {tab.state !== "dormant" && (
+            <button
+              className="menu-item"
+              onClick={() => {
+                detachTab(tab.id);
+                openTabMenu(null);
+              }}
+            >
+              Mover para nova janela
+            </button>
+          )}
+        </>
+      )}
       <div className="menu-sep" />
       <button
         className="menu-item danger"

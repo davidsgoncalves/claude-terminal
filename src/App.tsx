@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { emitTo, listen } from "@tauri-apps/api/event";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import "@xterm/xterm/css/xterm.css";
 import "./App.css";
 import { Sidebar } from "./components/Sidebar";
@@ -17,7 +18,17 @@ import { EmptyPane } from "./components/EmptyPane";
 import { EditorPanel } from "./components/EditorPanel";
 import { defaultGroupId, ensureUngrouped, openSessionInGroup, useStore } from "./lib/store";
 import { tabPatchFor } from "./lib/hookState";
-import { decodeBase64, terminals } from "./lib/terminals";
+import { decodeBase64, serializers, terminals } from "./lib/terminals";
+import {
+  DETACH_CLOSED,
+  DETACH_READY,
+  DETACH_RESIZE,
+  DETACH_SNAPSHOT,
+  closeDetachedWindow,
+  detachedLabel,
+  setDetachedTitle,
+  type DetachSnapshot,
+} from "./lib/detach";
 import { notify } from "./lib/notify";
 import { describeTool } from "./lib/describe";
 import { syncTabTitle } from "./lib/titles";
@@ -201,6 +212,50 @@ function useShortcuts() {
   }, []);
 }
 
+/** Serves the windows that hold a single detached terminal. */
+function useDetachedWindows() {
+  useEffect(() => {
+    const store = useStore.getState;
+    const subs = [
+      // A new window starts from the screen this window has kept drawing.
+      listen<{ id: string }>(DETACH_READY, (ev) => {
+        const { id } = ev.payload;
+        const term = terminals.get(id);
+        const snapshot: DetachSnapshot = {
+          id,
+          data: serializers.get(id)?.serialize() ?? "",
+          cols: term?.cols ?? 80,
+          rows: term?.rows ?? 24,
+        };
+        void emitTo(detachedLabel(id), DETACH_SNAPSHOT, snapshot);
+      }),
+      // Keep the hidden copy at the window's size so it reads right on return.
+      listen<{ id: string; cols: number; rows: number }>(DETACH_RESIZE, (ev) => {
+        terminals.get(ev.payload.id)?.resize(ev.payload.cols, ev.payload.rows);
+      }),
+      listen<{ id: string }>(DETACH_CLOSED, (ev) => store().reattachTab(ev.payload.id)),
+      // Detached windows cannot outlive the window that owns their tabs.
+      getCurrentWebviewWindow().onCloseRequested(() => store().detached.forEach(closeDetachedWindow)),
+    ];
+
+    let titles = new Map<string, string>();
+    const unsub = useStore.subscribe((s) => {
+      const next = new Map<string, string>();
+      for (const id of s.detached) {
+        const title = s.tabs.find((t) => t.id === id)?.title ?? "";
+        next.set(id, title);
+        if (titles.has(id) && titles.get(id) !== title) setDetachedTitle(id, title);
+      }
+      titles = next;
+    });
+
+    return () => {
+      unsub();
+      subs.forEach((p) => void p.then((u) => u()));
+    };
+  }, []);
+}
+
 function useEditorRequests(): [EditorRequest | null, () => void] {
   const [request, setRequest] = useState<EditorRequest | null>(null);
   useEffect(() => {
@@ -218,6 +273,7 @@ function App() {
   useTitlePoll();
   useWatchdog();
   useShortcuts();
+  useDetachedWindows();
   const tabs = useStore((s) => s.tabs);
 
   useEffect(() => {
@@ -241,7 +297,7 @@ function App() {
   const barPosition = useStore((s) => s.barPosition);
   const groups = useStore((s) => s.groups);
   const borderWidth = useStore((s) => s.terminalBorder);
-  const { splitMode, panes, focusedPane, focusPane } = useStore();
+  const { splitMode, panes, focusedPane, focusPane, detached } = useStore();
   const slots = paneCount(splitMode);
   const paneOf = (tabId: string) => panes.slice(0, slots).indexOf(tabId);
   const colorOf = (tab: (typeof tabs)[number]) =>
@@ -269,7 +325,7 @@ function App() {
                 <TerminalView
                   key={t.id}
                   tab={t}
-                  visible={slot !== -1}
+                  visible={slot !== -1 && !detached.includes(t.id)}
                   focused={slot === focusedPane}
                   rect={paneRect(splitMode, slot === -1 ? 0 : slot)}
                   color={colorOf(t)}
