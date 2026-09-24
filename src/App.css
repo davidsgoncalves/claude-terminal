@@ -755,3 +755,7 @@ button.star.on { color: var(--accent); }
 .term-search-count { font-size: 10px; color: var(--muted); min-width: 34px; text-align: center; font-variant-numeric: tabular-nums; }
 .term-search .icon-btn { font-size: 11px; }
 .term-search .icon-btn.on { color: var(--accent); }
+.about-update {
+  display: flex; align-items: center; gap: 10px; justify-content: space-between; padding: 8px 10px;
+  background: var(--bg); border: 1px solid var(--accent); border-radius: 6px; font-size: 12px;
+}
