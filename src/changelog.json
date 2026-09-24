@@ -18,46 +18,65 @@
   {
     "version": "0.1.9",
     "date": "2026-09-22",
-    "items": ["Reiniciar depois de uma atualização no macOS abre o app de novo."]
+    "items": [
+      "Reiniciar depois de uma atualização no macOS abre o app de novo."
+    ]
   },
   {
     "version": "0.1.8",
     "date": "2026-09-22",
-    "items": ["Aba Sobre nas configurações, com a versão instalada e busca manual de atualização."]
+    "items": [
+      "Aba Sobre nas configurações, com a versão instalada e busca manual de atualização."
+    ]
   },
   {
     "version": "0.1.7",
     "date": "2026-09-22",
-    "items": ["Instalações por pacote no Linux se atualizam de dentro do app."]
+    "items": [
+      "Instalações por pacote no Linux se atualizam de dentro do app."
+    ]
   },
   {
     "version": "0.1.6",
     "date": "2026-09-22",
-    "items": ["Correções na entrega de atualizações."]
+    "items": [
+      "Correções na entrega de atualizações."
+    ]
   },
   {
     "version": "0.1.5",
     "date": "2026-09-22",
-    "items": ["Uma aba reaberta continua a sessão do Claude que estava rodando."]
+    "items": [
+      "Uma aba reaberta continua a sessão do Claude que estava rodando."
+    ]
   },
   {
     "version": "0.1.4",
     "date": "2026-09-22",
-    "items": ["Instalador do macOS assinado."]
+    "items": [
+      "Instalador do macOS assinado."
+    ]
   },
   {
     "version": "0.1.3",
     "date": "2026-09-22",
-    "items": ["A barra de limites pode ficar no topo ou embaixo.", "Ajustes visuais na janela."]
+    "items": [
+      "A barra de limites pode ficar no topo ou embaixo.",
+      "Ajustes visuais na janela."
+    ]
   },
   {
     "version": "0.1.1",
     "date": "2026-09-22",
-    "items": ["Atualização automática."]
+    "items": [
+      "Atualização automática."
+    ]
   },
   {
     "version": "0.1.0",
     "date": "2026-09-22",
-    "items": ["Primeira versão: terminal com abas agrupadas para o Claude Code."]
+    "items": [
+      "Primeira versão: terminal com abas agrupadas para o Claude Code."
+    ]
   }
 ]
