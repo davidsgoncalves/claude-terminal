@@ -4,7 +4,9 @@
     "date": "2026-09-24",
     "items": [
       "No Linux, os atalhos usam Ctrl+Shift, como nos outros terminais, no lugar da tecla Super. As abas trocam com Alt+1 a Alt+9 e Ctrl+PgUp/PgDn.",
-      "O changelog e as dicas mostram os atalhos do sistema em uso."
+      "O changelog e as dicas mostram os atalhos do sistema em uso.",
+      "Cada grupo da lista lateral virou um cartão com fundo na sua cor, com opção Sutil, Marcado ou Sem fundo em Aparência.",
+      "A última linha do terminal não fica mais escondida embaixo da borda."
     ]
   },
   {

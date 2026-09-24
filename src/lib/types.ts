@@ -64,6 +64,9 @@ export interface GitInfo {
   files: number;
 }
 
+/** How strongly a group's colour tints its background. */
+export type GroupTint = "subtle" | "strong" | "none";
+
 /** How a long tab name fits in the sidebar. */
 export type TitleWrap = "truncate" | "wrap";
 

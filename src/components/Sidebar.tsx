@@ -159,7 +159,7 @@ function GroupSection({ group, tabs, activeTabId }: { group: Group; tabs: Tab[];
 
   return (
     <section
-      className={`group ${over ? "drag-over" : ""}`}
+      className={`group ${group.fixed ? "fixed" : ""} ${over ? "drag-over" : ""}`}
       style={{ ["--group-color" as string]: group.color }}
       onDragOver={(e) => {
         e.preventDefault();
@@ -216,7 +216,7 @@ function GroupSection({ group, tabs, activeTabId }: { group: Group; tabs: Tab[];
 }
 
 export function Sidebar() {
-  const { tabs, activeTabId, sidebarOpen, toggleSidebar, openModal } = useStore();
+  const { tabs, activeTabId, sidebarOpen, toggleSidebar, openModal, groupTint } = useStore();
   const groups = useStore((s) => s.groups).filter((g) => !g.hidden);
 
   if (!sidebarOpen) {
@@ -246,7 +246,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar tint-${groupTint}`}>
       <header className="sidebar-header">
         <h1>Sessões</h1>
         <button className="icon-btn" title={`Recolher (${shortcutLabel("sidebar")})`} onClick={toggleSidebar}>

@@ -207,6 +207,8 @@ function SettingsDialog({ initialTab, onClose }: { initialTab?: SettingsTab; onC
     setTerminalBorder,
     tabTitleWrap,
     setTabTitleWrap,
+    groupTint,
+    setGroupTint,
   } = useStore();
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -244,6 +246,23 @@ function SettingsDialog({ initialTab, onClose }: { initialTab?: SettingsTab; onC
           <button className={`chip ${layout === "topbar" ? "on" : ""}`} onClick={() => setLayout("topbar")}>
             Superior
           </button>
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <h3>Fundo dos grupos</h3>
+        <div className="chip-row">
+          {(
+            [
+              ["subtle", "Sutil"],
+              ["strong", "Marcado"],
+              ["none", "Sem fundo"],
+            ] as const
+          ).map(([value, label]) => (
+            <button key={value} className={`chip ${groupTint === value ? "on" : ""}`} onClick={() => setGroupTint(value)}>
+              {label}
+            </button>
+          ))}
         </div>
       </section>
 
