@@ -21,7 +21,7 @@ shell, então `.zshrc`, aliases e tudo mais continuam valendo.
   aba do Chrome. A lista fica na lateral ou numa barra superior, à sua escolha.
 - **Telas divididas.** Até quatro terminais ao mesmo tempo, em cinco arranjos.
   Botão direito em qualquer terminal escolhe o painel pelo número.
-- **Sessões antigas.** Lista com título, pasta e branch, busca no conteúdo
+- **Histórico.** Lista com título, pasta e branch, busca no conteúdo
   completo das conversas e retomada com um clique. Fixe as que você usa sempre.
 - **Editor em painel.** O Claude abre um editor embaixo do terminal para você
   preencher ou revisar algo, em texto, planilha, JSON ou XML, e recebe de volta

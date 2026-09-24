@@ -27,7 +27,7 @@ export function RightPanel() {
 
   const TABS: Array<{ key: PanelTab; label: string; badge?: number }> = [
     { key: "queue", label: "Fila", badge: pending },
-    { key: "sessions", label: "Sessões" },
+    { key: "sessions", label: "Histórico" },
     { key: "events", label: "Eventos" },
   ];
 
