@@ -37,6 +37,7 @@ function AboutTab() {
   const [status, setStatus] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
   const { update, pkg, phase, progress, message, look: lookForUpdate, install, restart } = useUpdater();
+  const { showEvents, setShowEvents } = useStore();
   const available = update?.version ?? pkg?.version;
 
   useEffect(() => {
@@ -104,6 +105,19 @@ function AboutTab() {
         <p className="hint">Atualização instalada. Feche e abra o app para concluir.{message ? ` (${message})` : ""}</p>
       )}
       {phase === "error" && <p className="error">Falha ao atualizar: {message}</p>}
+    </section>
+
+    <section className="settings-section">
+      <h3>Diagnóstico</h3>
+      <p className="hint">Mostra no painel da direita os eventos crus que o Claude Code envia ao app. Útil quando o status das abas ou as permissões param.</p>
+      <div className="chip-row">
+        <button className={`chip ${showEvents ? "on" : ""}`} onClick={() => setShowEvents(true)}>
+          Mostrar eventos
+        </button>
+        <button className={`chip ${!showEvents ? "on" : ""}`} onClick={() => setShowEvents(false)}>
+          Esconder
+        </button>
+      </div>
     </section>
 
     <section className="settings-section">

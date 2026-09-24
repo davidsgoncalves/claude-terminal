@@ -8,7 +8,7 @@ import { shortcutLabel } from "../lib/shortcuts";
 type PanelTab = "queue" | "sessions" | "events";
 
 export function RightPanel() {
-  const { eventsOpen, toggleEvents, permissions, questions, commands } = useStore();
+  const { eventsOpen, toggleEvents, permissions, questions, commands, showEvents } = useStore();
   const pending = permissions.length + questions.length + commands.length;
   const [panel, setPanel] = useState<PanelTab>("queue");
 
@@ -28,8 +28,10 @@ export function RightPanel() {
   const TABS: Array<{ key: PanelTab; label: string; badge?: number }> = [
     { key: "queue", label: "Fila", badge: pending },
     { key: "sessions", label: "Histórico" },
-    { key: "events", label: "Eventos" },
+    // Raw hook traffic, only for diagnosing the app; switched on under Sobre.
+    ...(showEvents ? [{ key: "events" as const, label: "Eventos" }] : []),
   ];
+  const current = panel === "events" && !showEvents ? "queue" : panel;
 
   return (
     <aside className="events-panel">
@@ -37,7 +39,7 @@ export function RightPanel() {
         {TABS.map((t) => (
           <button
             key={t.key}
-            className={panel === t.key ? "active" : ""}
+            className={current === t.key ? "active" : ""}
             onClick={() => setPanel(t.key)}
           >
             {t.label}
@@ -49,17 +51,17 @@ export function RightPanel() {
         </button>
       </header>
 
-      {panel === "queue" && (
+      {current === "queue" && (
         <div className="panel-body">
           <PermissionQueue />
         </div>
       )}
-      {panel === "sessions" && (
+      {current === "sessions" && (
         <div className="panel-body">
           <SessionsBrowser />
         </div>
       )}
-      {panel === "events" && (
+      {current === "events" && (
         <div className="panel-body">
           <EventsList />
         </div>
