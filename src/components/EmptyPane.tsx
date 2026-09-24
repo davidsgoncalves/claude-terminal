@@ -23,7 +23,8 @@ export function EmptyPane({ index }: { index: number }) {
   }, [open]);
 
   const shown = new Set(panes.slice(0, paneCount(splitMode)).filter(Boolean) as string[]);
-  const available = tabs.filter((t) => !shown.has(t.id) && !detached.includes(t.id));
+  const hiddenGroups = new Set(groups.filter((g) => g.hidden).map((g) => g.id));
+  const available = tabs.filter((t) => !shown.has(t.id) && !hiddenGroups.has(t.groupId) && !detached.includes(t.id));
 
   const startNew = () => {
     setOpen(false);

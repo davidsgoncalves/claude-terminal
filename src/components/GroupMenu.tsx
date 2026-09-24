@@ -5,7 +5,7 @@ import { GROUP_COLORS } from "../lib/types";
 
 /** Right-click menu for a group: colour, rename, collapse and removal. */
 export function GroupMenu() {
-  const { groupMenu, openGroupMenu, groups, tabs, setGroupColor, renameGroup, toggleGroupCollapsed, ungroupTabs, closeGroup } =
+  const { groupMenu, openGroupMenu, groups, tabs, setGroupColor, renameGroup, toggleGroupCollapsed, setGroupHidden, ungroupTabs, closeGroup } =
     useStore();
   const [confirming, setConfirming] = useState(false);
   const [renaming, setRenaming] = useState(false);
@@ -97,6 +97,16 @@ export function GroupMenu() {
         }}
       >
         {group.collapsed ? "Expandir" : "Recolher"}
+      </button>
+
+      <button
+        className="menu-item"
+        onClick={() => {
+          setGroupHidden(group.id, true);
+          close();
+        }}
+      >
+        Ocultar grupo
       </button>
 
       <div className="menu-sep" />

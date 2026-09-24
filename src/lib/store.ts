@@ -87,6 +87,7 @@ interface Store {
   renameGroup: (id: string, name: string) => void;
   cycleGroupColor: (id: string) => void;
   toggleGroupCollapsed: (id: string) => void;
+  setGroupHidden: (id: string, hidden: boolean) => void;
   removeGroup: (id: string) => void;
 
   addTab: (
@@ -195,6 +196,18 @@ export const useStore = create<Store>()(
         })),
       toggleGroupCollapsed: (id) =>
         set((s) => ({ groups: s.groups.map((g) => (g.id === id ? { ...g, collapsed: !g.collapsed } : g)) })),
+      setGroupHidden: (id, hidden) =>
+        set((s) => {
+          if (id === UNGROUPED_ID) return s;
+          const groups = s.groups.map((g) => (g.id === id ? { ...g, hidden } : g));
+          if (!hidden) return { groups };
+          // Hidden tabs leave the panes, and focus moves to a tab still in view.
+          const gone = new Set(s.tabs.filter((t) => t.groupId === id).map((t) => t.id));
+          const panes = s.panes.map((p) => (p && gone.has(p) ? null : p));
+          const activeTabId =
+            s.activeTabId && gone.has(s.activeTabId) ? (panes.find((p) => p != null) ?? null) : s.activeTabId;
+          return { groups, panes, activeTabId };
+        }),
       removeGroup: (id) =>
         set((s) => {
           if (id === UNGROUPED_ID) return s;
