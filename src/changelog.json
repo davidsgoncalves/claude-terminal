@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.1.17",
+    "date": "2026-09-24",
+    "items": [
+      "O botão de comando sugerido pelo Claude passa a funcionar, e o editor em painel abre no painel da aba que o chamou.",
+      "O servidor MCP do app agora se chama shellhive.",
+      "Um release novo só fica visível para os apps quando está completo, então buscar atualização durante um build não dá mais erro."
+    ]
+  },
+  {
     "version": "0.1.16",
     "date": "2026-09-24",
     "items": [
