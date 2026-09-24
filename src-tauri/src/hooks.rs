@@ -422,7 +422,13 @@ pub fn write_scripts() -> Result<HookSetup, String> {
         &mcp_json,
         serde_json::to_string_pretty(&serde_json::json!({
             "mcpServers": {
-                "shellhive": { "type": "http", "url": format!("http://127.0.0.1:{PORT}/mcp") }
+                "shellhive": {
+                    "type": "http",
+                    "url": format!("http://127.0.0.1:{PORT}/mcp"),
+                    // Claude Code expands this per session, so a tool call says
+                    // which tab it came from, as the hook scripts already do.
+                    "headers": { "X-Tab-Id": "${CLAUDE_TERMINAL_TAB_ID:-}" }
+                }
             }
         }))
         .unwrap(),
