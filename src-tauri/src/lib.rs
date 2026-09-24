@@ -1,4 +1,5 @@
 mod db;
+mod git;
 mod hooks;
 mod install;
 mod mcp;
@@ -41,6 +42,7 @@ pub fn run() {
             db::state_load,
             db::state_save,
             db::metrics_summary,
+            git::git_info,
             paths::path_check,
             paths::home_dir,
             install::install_kind,

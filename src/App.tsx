@@ -39,6 +39,7 @@ import {
   type HookEvent,
   type HookSetup,
   type EditorRequest,
+  type GitInfo,
   type PermissionRequest,
   type QuestionItem,
   type StatusEnvelope,
@@ -192,6 +193,7 @@ function useShortcuts() {
       const handled = (() => {
         if (key === "t" && !e.shiftKey) return void openSessionInGroup(defaultGroupId());
         if (key === "w" && !e.shiftKey) return void (s.activeTabId && s.closeTab(s.activeTabId));
+        if (key === "p" && !e.shiftKey) return void s.openModal(s.modal?.kind === "switcher" ? null : { kind: "switcher" });
         if (key === "b") return void s.toggleSidebar();
         if (key === "e") return void s.toggleEvents();
         if (key === ",") return void s.openModal({ kind: "settings" });
@@ -256,6 +258,41 @@ function useDetachedWindows() {
   }, []);
 }
 
+const GIT_POLL_MS = 10_000;
+
+/** Keeps each live tab's branch and pending changes current. */
+function useGitPoll() {
+  useEffect(() => {
+    const refresh = (tabId: string) => {
+      const tab = useStore.getState().tabs.find((t) => t.id === tabId);
+      if (!tab?.cwd) return;
+      invoke<GitInfo | null>("git_info", { cwd: tab.cwd })
+        .then((info) => useStore.getState().setGitInfo(tabId, info))
+        .catch(() => {});
+    };
+    const timers = new Map<string, ReturnType<typeof setTimeout>>();
+    const soon = (tabId: string) => {
+      clearTimeout(timers.get(tabId));
+      timers.set(tabId, setTimeout(() => refresh(tabId), 1500));
+    };
+    const tick = () => {
+      for (const tab of useStore.getState().tabs) if (tab.state !== "dormant") refresh(tab.id);
+    };
+    tick();
+    const id = setInterval(tick, GIT_POLL_MS);
+    // A finished turn is when files most likely changed.
+    const sub = listen<HookEvent>("hook-event", (ev) => {
+      const name = ev.payload.payload.hook_event_name;
+      if (ev.payload.tab_id && (name === "Stop" || name === "PostToolUse")) soon(ev.payload.tab_id);
+    });
+    return () => {
+      clearInterval(id);
+      timers.forEach(clearTimeout);
+      void sub.then((u) => u());
+    };
+  }, []);
+}
+
 function useEditorRequests(): [EditorRequest | null, () => void] {
   const [request, setRequest] = useState<EditorRequest | null>(null);
   useEffect(() => {
@@ -274,6 +311,7 @@ function App() {
   useWatchdog();
   useShortcuts();
   useDetachedWindows();
+  useGitPoll();
   const tabs = useStore((s) => s.tabs);
 
   useEffect(() => {

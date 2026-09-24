@@ -124,6 +124,12 @@ button.ghost:disabled { opacity: .4; cursor: default; }
 .tab-row:hover { background: var(--panel-2); }
 .tab-row.active { background: var(--panel-2); border-left-color: var(--group-color); }
 .tab-row .tab-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.tab-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tab-main .tab-title { flex: none; }
+.tab-git { display: flex; gap: 6px; font-size: 10px; color: var(--muted); min-width: 0; font-variant-numeric: tabular-nums; }
+.git-branch { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.git-add { color: #4caf7d; flex-shrink: 0; }
+.git-del { color: #e0564f; flex-shrink: 0; }
 .tab-row.wrap { align-items: flex-start; }
 .tab-row.wrap .tab-title { white-space: normal; overflow-wrap: anywhere; line-height: 16px; }
 .tab-row.wrap .dot { margin-top: 4px; }
@@ -683,3 +689,19 @@ button.star.on { color: var(--accent); }
   padding: 2px 8px; font-size: 11px; cursor: pointer;
 }
 .hidden-restore:hover { border-color: var(--accent); }
+
+/* ---------- quick switcher ---------- */
+.modal.switcher { width: min(620px, 92vw); }
+.switcher-input {
+  background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--fg);
+  font: inherit; font-size: 14px; padding: 12px 14px; outline: none;
+}
+.switcher-list { list-style: none; margin: 0; padding: 6px; overflow-y: auto; display: flex; flex-direction: column; gap: 1px; }
+.switcher-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 6px; cursor: pointer; }
+.switcher-row.on { background: var(--panel-2); }
+.switcher-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.switcher-title { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.switcher-sub { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.switcher-tag { font-size: 10px; color: var(--muted); border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; flex-shrink: 0; }
+.switcher-state { font-size: 10px; color: var(--muted); flex-shrink: 0; }
+.switcher-row.state-dormant .switcher-title { color: var(--muted); }

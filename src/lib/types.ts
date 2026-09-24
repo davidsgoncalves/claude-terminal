@@ -41,6 +41,14 @@ export type Layout = "sidebar" | "topbar";
 /** Which edge of the window holds the limits and split bar. */
 export type BarPosition = "top" | "bottom";
 
+/** Branch and pending changes of a tab's folder. */
+export interface GitInfo {
+  branch: string;
+  added: number;
+  removed: number;
+  files: number;
+}
+
 /** How a long tab name fits in the sidebar. */
 export type TitleWrap = "truncate" | "wrap";
 

@@ -21,7 +21,7 @@ interface Props {
 }
 
 /** Cmd shortcuts the app owns; xterm ignores them so they bubble up to the window handler. */
-const APP_SHORTCUTS = new Set(["t", "w", "b", "e", "1", "2", "3", "4", "5", "6", "7", "8", "9", "[", "]"]);
+const APP_SHORTCUTS = new Set(["t", "w", "p", "b", "e", "1", "2", "3", "4", "5", "6", "7", "8", "9", "[", "]"]);
 
 export function TerminalView({ tab, visible, focused, rect, color, onFocus, onContextMenu }: Props) {
   const ref = useRef<HTMLDivElement>(null);

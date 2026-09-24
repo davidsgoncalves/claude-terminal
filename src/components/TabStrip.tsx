@@ -7,6 +7,7 @@ import { STATE_LABEL, type Group, type Tab } from "../lib/types";
 function StripTab({ tab, active }: { tab: Tab; active: boolean }) {
   const { activateTab, closeTab, openTabMenu, detachTab } = useStore();
   const isDetached = useStore((s) => s.detached.includes(tab.id));
+  const branch = useStore((s) => s.gitByTab[tab.id]?.branch);
   const stale = useStore((s) => s.alerted.includes(tab.id));
   const pct = useStore((s) => s.statusByTab[tab.id]?.context_window?.used_percentage);
   const showPct = pct != null && (active || pct >= 70);
@@ -27,7 +28,7 @@ function StripTab({ tab, active }: { tab: Tab; active: boolean }) {
         e.stopPropagation();
         openTabMenu({ x: e.clientX, y: e.clientY, tabId: tab.id });
       }}
-      title={tab.pendingMessage ?? `${tab.title} · ${STATE_LABEL[tab.state]}`}
+      title={tab.pendingMessage ?? [tab.title, STATE_LABEL[tab.state], branch && `⎇ ${branch}`].filter(Boolean).join(" · ")}
     >
       <span className="dot" />
       <span className="strip-title">{tab.title}</span>
