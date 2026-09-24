@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useStore } from "../lib/store";
 import { terminals } from "../lib/terminals";
+import { LABELS, primaryMod } from "../lib/shortcuts";
 import type { SavedPrompt } from "../lib/types";
 
 /** Pasted as one block, so line breaks in the prompt do not submit it early. */
@@ -58,7 +59,7 @@ export function PromptPicker({ onClose }: { onClose: () => void }) {
               e.preventDefault();
               setCursor((c) => Math.max(c - 1, 0));
             } else if (e.key === "Enter") {
-              pick(results[cursor], e.metaKey);
+              pick(results[cursor], primaryMod(e));
             }
           }}
         />
@@ -73,7 +74,7 @@ export function PromptPicker({ onClose }: { onClose: () => void }) {
                 key={p.id}
                 className={`switcher-row ${i === cursor ? "on" : ""}`}
                 onMouseMove={() => setCursor(i)}
-                onClick={(e) => pick(p, e.metaKey)}
+                onClick={(e) => pick(p, primaryMod(e))}
               >
                 <span className="switcher-main">
                   <span className="switcher-title">{p.name}</span>
@@ -84,7 +85,7 @@ export function PromptPicker({ onClose }: { onClose: () => void }) {
           </ul>
         )}
         <footer className="switcher-foot">
-          <span>Enter insere · ⌘Enter insere e envia</span>
+          <span>Enter insere · {LABELS.sendNow} insere e envia</span>
           <button className="link" onClick={() => openModal({ kind: "settings", tab: "prompts" })}>
             Gerenciar prompts
           </button>

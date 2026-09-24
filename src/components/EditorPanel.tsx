@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { CsvGrid } from "./editors/CsvGrid";
 import { format as reformat, validate } from "../lib/editorFormat";
 import type { EditorFormat, EditorRequest } from "../lib/types";
+import { LABELS } from "../lib/shortcuts";
 
 const FORMATS: Array<{ value: EditorFormat; label: string }> = [
   { value: "text", label: "Texto" },
@@ -166,7 +167,7 @@ export function EditorPanel({ request, onDone, rect }: Props) {
           Cancelar
         </button>
         <button className="primary" onClick={() => void submit()} disabled={sent || !!error}>
-          Enviar ao Claude (⌘↵)
+          Enviar ao Claude ({LABELS.sendNow})
         </button>
       </footer>
     </section>

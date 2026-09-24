@@ -3,6 +3,7 @@ import { useStore } from "../lib/store";
 import { PermissionQueue } from "./PermissionQueue";
 import { SessionsBrowser } from "./SessionsBrowser";
 import { EventsList } from "./EventsPanel";
+import { shortcutLabel } from "../lib/shortcuts";
 
 type PanelTab = "queue" | "sessions" | "events";
 
@@ -13,7 +14,7 @@ export function RightPanel() {
   if (!eventsOpen) {
     return (
       <aside className="events-panel collapsed">
-        <button className="icon-btn" title="Mostrar painel (⌘E)" onClick={toggleEvents}>
+        <button className="icon-btn" title={`Mostrar painel (${shortcutLabel("events")})`} onClick={toggleEvents}>
           «
         </button>
         {permissions.length + questions.length > 0 && (
@@ -42,7 +43,7 @@ export function RightPanel() {
             {t.badge ? <span className="badge">{t.badge}</span> : null}
           </button>
         ))}
-        <button className="icon-btn" title="Recolher (⌘E)" onClick={toggleEvents}>
+        <button className="icon-btn" title={`Recolher (${shortcutLabel("events")})`} onClick={toggleEvents}>
           »
         </button>
       </header>

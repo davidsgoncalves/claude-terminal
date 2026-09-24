@@ -33,6 +33,7 @@ import {
 import { notify } from "./lib/notify";
 import { describeTool } from "./lib/describe";
 import { ruleAllows } from "./lib/permRules";
+import { actionOf, tabNumberOf } from "./lib/shortcuts";
 import { syncTabTitle } from "./lib/titles";
 import {
   WATCHDOG_MINUTES,
@@ -191,36 +192,47 @@ function useWatchdog() {
 function useShortcuts() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!e.metaKey) return;
+      const action = actionOf(e);
+      const number = tabNumberOf(e);
+      if (!action && number === null) return;
       const s = useStore.getState();
-      const key = e.key.toLowerCase();
       const live = s.tabs.filter((t) => t.state !== "dormant");
       const idx = live.findIndex((t) => t.id === s.activeTabId);
+      e.preventDefault();
 
-      const handled = (() => {
-        if (key === "t" && !e.shiftKey) return void openSessionInGroup(defaultGroupId());
-        if (key === "t" && e.shiftKey) return void s.reopenClosedTab();
-        if (key === "w" && !e.shiftKey) return void (s.activeTabId && s.closeTab(s.activeTabId));
-        if (key === "p" && e.shiftKey) return void s.openModal(s.modal?.kind === "prompts" ? null : { kind: "prompts" });
-        if (key === "p" && !e.shiftKey) return void s.openModal(s.modal?.kind === "switcher" ? null : { kind: "switcher" });
-        if (key === "f" && !e.shiftKey) {
+      if (number !== null) {
+        const t = live[number - 1];
+        if (t) s.activateTab(t.id);
+        return;
+      }
+      switch (action) {
+        case "newTab":
+          return void openSessionInGroup(defaultGroupId());
+        case "reopenTab":
+          return s.reopenClosedTab();
+        case "closeTab":
+          return void (s.activeTabId && s.closeTab(s.activeTabId));
+        case "prompts":
+          return s.openModal(s.modal?.kind === "prompts" ? null : { kind: "prompts" });
+        case "switcher":
+          return s.openModal(s.modal?.kind === "switcher" ? null : { kind: "switcher" });
+        case "search": {
           const target = s.panes[s.focusedPane] ?? s.activeTabId;
           return void (target && !s.detached.includes(target) && s.openSearch(target));
         }
-        if (key === "b") return void s.toggleSidebar();
-        if (key === "e") return void s.toggleEvents();
-        if (key === ",") return void s.openModal({ kind: "settings" });
-        if (/^[1-9]$/.test(key)) {
-          const t = live[Number(key) - 1];
-          return void (t && s.activateTab(t.id));
+        case "sidebar":
+          return s.toggleSidebar();
+        case "events":
+          return s.toggleEvents();
+        case "settings":
+          return s.openModal({ kind: "settings" });
+        case "nextTab":
+        case "prevTab": {
+          if (live.length < 2) return;
+          const next = (idx + (action === "nextTab" ? 1 : -1) + live.length) % live.length;
+          return s.activateTab(live[next].id);
         }
-        if (e.shiftKey && (key === "[" || key === "]") && live.length > 1) {
-          const next = (idx + (key === "]" ? 1 : -1) + live.length) % live.length;
-          return void s.activateTab(live[next].id);
-        }
-        return "skip";
-      })();
-      if (handled !== "skip") e.preventDefault();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);

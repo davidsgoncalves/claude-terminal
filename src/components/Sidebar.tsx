@@ -3,6 +3,7 @@ import { openSessionInGroup, useStore } from "../lib/store";
 import { droppedOutside } from "../lib/detach";
 import { HiddenGroups } from "./HiddenGroups";
 import { STATE_LABEL, type GitInfo, type Group, type StatusPayload, type Tab } from "../lib/types";
+import { shortcutLabel } from "../lib/shortcuts";
 
 function ctxClass(pct: number): string {
   if (pct >= 90) return "crit";
@@ -221,7 +222,7 @@ export function Sidebar() {
   if (!sidebarOpen) {
     return (
       <aside className="sidebar collapsed">
-        <button className="icon-btn" title="Mostrar sessões (⌘B)" onClick={toggleSidebar}>
+        <button className="icon-btn" title={`Mostrar sessões (${shortcutLabel("sidebar")})`} onClick={toggleSidebar}>
           »
         </button>
         <div className="rail">
@@ -248,7 +249,7 @@ export function Sidebar() {
     <aside className="sidebar">
       <header className="sidebar-header">
         <h1>Sessões</h1>
-        <button className="icon-btn" title="Recolher (⌘B)" onClick={toggleSidebar}>
+        <button className="icon-btn" title={`Recolher (${shortcutLabel("sidebar")})`} onClick={toggleSidebar}>
           «
         </button>
       </header>
