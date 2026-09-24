@@ -40,3 +40,15 @@ pub fn home_dir() -> String {
         .map(|h| h.to_string_lossy().to_string())
         .unwrap_or_else(|| "/".into())
 }
+
+/// True when running inside WSL on Windows, where the desktop, the browser and
+/// the password prompt belong to Windows rather than to Linux.
+pub fn is_wsl() -> bool {
+    if !cfg!(target_os = "linux") {
+        return false;
+    }
+    std::env::var_os("WSL_DISTRO_NAME").is_some()
+        || std::fs::read_to_string("/proc/sys/kernel/osrelease")
+            .map(|r| r.to_lowercase().contains("microsoft"))
+            .unwrap_or(false)
+}

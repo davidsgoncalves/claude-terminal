@@ -36,7 +36,11 @@ fn resolve(target: &str, cwd: Option<&str>) -> PathBuf {
 /// (absolute, or relative to the tab's folder) with its default app.
 #[tauri::command]
 pub fn link_open(app: AppHandle, target: String, cwd: Option<String>) -> Result<(), String> {
-    if target.starts_with("http://") || target.starts_with("https://") {
+    let web = target.starts_with("http://") || target.starts_with("https://");
+    if web && crate::paths::is_wsl() {
+        return open_on_windows(&target);
+    }
+    if web {
         return app
             .opener()
             .open_url(target, None::<&str>)
@@ -49,9 +53,38 @@ pub fn link_open(app: AppHandle, target: String, cwd: Option<String>) -> Result<
     if !path.exists() {
         return Err(format!("{} não existe", path.display()));
     }
+    if crate::paths::is_wsl() {
+        return open_on_windows(&path.to_string_lossy());
+    }
     app.opener()
         .open_path(path.to_string_lossy(), None::<&str>)
         .map_err(|e| e.to_string())
+}
+
+/// Inside WSL there is usually no Linux browser or file handler, so links go
+/// to Windows: through wslview when installed, else through explorer.exe with
+/// the path translated to its Windows form.
+fn open_on_windows(target: &str) -> Result<(), String> {
+    use std::process::Command;
+    if Command::new("wslview").arg(target).spawn().is_ok() {
+        return Ok(());
+    }
+    let windows_target = if target.starts_with('/') {
+        Command::new("wslpath")
+            .args(["-w", target])
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
+            .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+            .unwrap_or_else(|| target.to_string())
+    } else {
+        target.to_string()
+    };
+    Command::new("explorer.exe")
+        .arg(windows_target)
+        .spawn()
+        .map(|_| ())
+        .map_err(|e| format!("não consegui abrir no Windows: {e}"))
 }
 
 /// True when the text points at an existing file, so it is worth underlining.

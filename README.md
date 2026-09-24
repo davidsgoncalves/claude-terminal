@@ -60,6 +60,35 @@ está danificado, remova a marca e abra normalmente:
 xattr -dr com.apple.quarantine "/Applications/Shellhive.app"
 ```
 
+### Windows com WSL
+
+O Shellhive roda dentro do WSL como um app Linux, com a janela aberta pelo
+próprio Windows. O Claude Code, as abas e as sessões ficam todos dentro da
+distribuição Linux.
+
+Requisitos: Windows 11, ou Windows 10 21H2 ou mais novo, com o WSL instalado
+pela Microsoft Store (`wsl --update`). As janelas gráficas do Linux já vêm
+ligadas nessas versões.
+
+Dentro do Ubuntu do WSL, instale o `.deb`:
+
+```bash
+sudo apt install ./Shellhive_<versão>_Linux-Debian-Ubuntu.deb
+claude-terminal &
+```
+
+O executável instalado ainda se chama `claude-terminal`, o nome interno do
+app. Ele também aparece no menu Iniciar do Windows como Shellhive, junto dos
+outros apps do WSL.
+
+- **Atualizações:** o app avisa quando há versão nova e baixa o pacote, mas o
+  WSL não tem a janela de senha do sistema. A mensagem de erro traz o comando
+  `sudo apt install` com o caminho do pacote baixado, para rodar numa aba.
+- **Links:** ⌘-clique vira Ctrl-clique, e links e arquivos abrem no Windows,
+  pelo `wslview` quando instalado (`sudo apt install wslu`) ou pelo Explorer.
+- **AppImage:** também funciona, mas precisa de `sudo apt install libfuse2`
+  (Ubuntu 22.04) ou `libfuse2t64` (Ubuntu 24.04).
+
 ## Como ele conversa com o Claude Code
 
 Nada do seu `~/.claude/settings.json` é alterado. O app escreve os próprios

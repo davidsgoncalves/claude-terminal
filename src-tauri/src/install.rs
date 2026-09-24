@@ -107,6 +107,14 @@ fn install_package(file_name: String, bytes: Vec<u8>) -> Result<String, String> 
     std::fs::write(&path, bytes).map_err(|e| format!("não consegui gravar o pacote: {e}"))?;
     let path_str = path.to_string_lossy().to_string();
 
+    // WSL has no polkit agent to ask for the password, nor a Linux installer
+    // to hand the package to, so the user installs it from a terminal tab.
+    if crate::paths::is_wsl() {
+        return Err(format!(
+            "no WSL o app não consegue pedir sua senha. Rode numa aba: sudo apt install '{path_str}'"
+        ));
+    }
+
     if which("pkexec") && run("pkexec", &["apt-get", "install", "-y", &path_str]).is_ok() {
         return Ok("installed".into());
     }
