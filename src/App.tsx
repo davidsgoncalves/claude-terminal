@@ -17,6 +17,7 @@ import { PaneOverlay } from "./components/PaneOverlay";
 import { EmptyPane } from "./components/EmptyPane";
 import { EditorPanel } from "./components/EditorPanel";
 import { TerminalSearch } from "./components/TerminalSearch";
+import { CommandCard } from "./components/CommandCard";
 import { defaultGroupId, ensureUngrouped, openSession, openSessionInGroup, useStore } from "./lib/store";
 import { tabPatchFor } from "./lib/hookState";
 import { decodeBase64, serializers, terminals } from "./lib/terminals";
@@ -462,7 +463,7 @@ function App() {
   const barPosition = useStore((s) => s.barPosition);
   const groups = useStore((s) => s.groups);
   const borderWidth = useStore((s) => s.terminalBorder);
-  const { splitMode, panes, focusedPane, focusPane, detached, searchTabId, openSearch } = useStore();
+  const { splitMode, panes, focusedPane, focusPane, detached, searchTabId, openSearch, commands } = useStore();
   const slots = paneCount(splitMode);
   const paneOf = (tabId: string) => panes.slice(0, slots).indexOf(tabId);
   const colorOf = (tab: (typeof tabs)[number]) =>
@@ -525,6 +526,18 @@ function App() {
                 onClose={() => openSearch(null)}
               />
             )}
+            {Array.from({ length: slots }, (_, slot) => {
+              const tabId = panes[slot];
+              const here = commands.filter((c) => c.tab_id && c.tab_id === tabId);
+              if (!tabId || here.length === 0 || detached.includes(tabId)) return null;
+              return (
+                <ul key={`cmd-${slot}`} className="pane-commands" style={paneRect(splitMode, slot)}>
+                  {here.map((c) => (
+                    <CommandCard key={c.id} item={c} overlay />
+                  ))}
+                </ul>
+              );
+            })}
             <PaneOverlay />
           </div>
         </main>

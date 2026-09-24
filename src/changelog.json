@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.1.18",
+    "date": "2026-09-24",
+    "items": [
+      "Comandos sugeridos pelo Claude aparecem sobre o terminal da própria aba, também com a tela dividida.",
+      "A lista de sessões gravadas, à direita, agora se chama Histórico."
+    ]
+  },
+  {
     "version": "0.1.17",
     "date": "2026-09-24",
     "items": [
