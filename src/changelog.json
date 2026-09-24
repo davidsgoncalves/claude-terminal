@@ -6,7 +6,10 @@
       "Cada aba mostra os subagentes que a sessão está rodando, com o tipo e a descrição.",
       "Mini painel flutuante, sempre por cima das outras janelas, com o estado de cada sessão. Liga em Aparência ou com {miniPanel}.",
       "O logo do Shellhive aparece ao lado do nome na barra de limites.",
-      "O pacote .deb informa o nome de quem o mantém."
+      "O pacote .deb informa o nome de quem o mantém.",
+      "Abrir ou restaurar uma sessão com a tela dividida ocupa primeiro um painel vazio.",
+      "Arrastar uma aba da lista para um painel abre a sessão nele.",
+      "Se outro programa estiver usando a porta do app ao abrir, ele tenta de novo até conseguir, em vez de ficar sem hooks, permissões e editor."
     ]
   },
   {
