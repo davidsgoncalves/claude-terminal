@@ -5,7 +5,7 @@ import { looksDestructive } from "../lib/describe";
 import type { CommandSuggestion } from "../lib/types";
 
 /** Types into Claude's prompt a character at a time, the way a person would. */
-async function typeCommand(tabId: string, command: string): Promise<void> {
+export async function typeCommand(tabId: string, command: string): Promise<void> {
   const write = (data: string) => invoke("pty_write", { id: tabId, data });
   const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
   // "!" on an empty prompt switches Claude Code to shell mode; it has to land
@@ -17,17 +17,22 @@ async function typeCommand(tabId: string, command: string): Promise<void> {
   await write("\r");
 }
 
-/** A command Claude asked the user to run; it only runs on a click. */
+/**
+ * A command Claude asked the user to run; it only runs on a click. Clicked
+ * while Claude is still working, it waits and runs once the session is idle.
+ */
 export function CommandCard({ item, overlay = false }: { item: CommandSuggestion; overlay?: boolean }) {
-  const { tabs, activateTab, dropCommand } = useStore();
+  const { tabs, activateTab, dropCommand, setCommandQueued } = useStore();
   const [running, setRunning] = useState(false);
   const tab = tabs.find((t) => t.id === item.tab_id);
   const risky = looksDestructive("Bash", { command: item.command });
   // Typing while Claude works would land in the middle of its turn.
   const ready = tab?.state === "waiting";
+  const live = !!tab && tab.state !== "dormant";
 
   const run = async () => {
     if (!tab) return;
+    if (!ready) return setCommandQueued(item.id, true);
     setRunning(true);
     await typeCommand(tab.id, item.command).catch(() => {});
     dropCommand(item.id);
@@ -48,18 +53,25 @@ export function CommandCard({ item, overlay = false }: { item: CommandSuggestion
           {tab?.title ?? "aba fechada"}
         </button>
       </div>
+      {item.queued && <p className="command-queued">Agendado: roda assim que o Claude terminar a resposta.</p>}
       <div className="perm-actions">
         <button className="deny" onClick={() => dropCommand(item.id)}>
           Descartar
         </button>
-        <button
-          className="allow"
-          disabled={!ready || running}
-          onClick={() => void run()}
-          title={ready ? "Roda nesta sessão como ! comando" : "Disponível quando a sessão estiver esperando você"}
-        >
-          {running ? "Executando…" : "Executar"}
-        </button>
+        {item.queued ? (
+          <button className="ask" onClick={() => setCommandQueued(item.id, false)}>
+            Cancelar agendamento
+          </button>
+        ) : (
+          <button
+            className="allow"
+            disabled={!live || running}
+            onClick={() => void run()}
+            title={ready ? "Roda nesta sessão como ! comando" : "Roda assim que o Claude terminar a resposta"}
+          >
+            {running ? "Executando…" : ready ? "Executar" : "Executar quando terminar"}
+          </button>
+        )}
       </div>
     </li>
   );

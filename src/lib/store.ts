@@ -221,6 +221,7 @@ interface Store {
   addQuestion: (q: QuestionItem) => void;
   addCommand: (c: CommandSuggestion) => void;
   dropCommand: (id: string) => void;
+  setCommandQueued: (id: string, queued: boolean) => void;
   dropQuestion: (match: { id?: string; toolUseId?: string; tabId?: string }) => void;
 }
 
@@ -626,6 +627,8 @@ export const useStore = create<Store>()(
       addQuestion: (q) => set((s) => ({ questions: [...s.questions, q] })),
       addCommand: (c) => set((s) => ({ commands: [...s.commands, c] })),
       dropCommand: (id) => set((s) => ({ commands: s.commands.filter((c) => c.id !== id) })),
+      setCommandQueued: (id, queued) =>
+        set((s) => ({ commands: s.commands.map((c) => (c.id === id ? { ...c, queued } : c)) })),
       dropQuestion: ({ id, toolUseId, tabId }) =>
         set((s) => ({
           questions: s.questions.filter(

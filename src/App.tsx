@@ -18,7 +18,7 @@ import { PaneOverlay } from "./components/PaneOverlay";
 import { EmptyPane } from "./components/EmptyPane";
 import { EditorPanel } from "./components/EditorPanel";
 import { TerminalSearch } from "./components/TerminalSearch";
-import { CommandCard } from "./components/CommandCard";
+import { CommandCard, typeCommand } from "./components/CommandCard";
 import { defaultGroupId, ensureUngrouped, openSession, openSessionInGroup, useStore } from "./lib/store";
 import { tabPatchFor } from "./lib/hookState";
 import { decodeBase64, serializers, terminals } from "./lib/terminals";
@@ -410,6 +410,27 @@ function useMiniPanel() {
   }, [on]);
 }
 
+/** Runs a queued command once its session stops working and waits. */
+function useQueuedCommands() {
+  useEffect(() => {
+    const started = new Set<string>();
+    return useStore.subscribe((s) => {
+      // One per tab at a time: the next waits for the session to be idle again.
+      const typing = new Set<string>();
+      for (const c of s.commands) {
+        if (!c.queued || started.has(c.id) || !c.tab_id || typing.has(c.tab_id)) continue;
+        const tab = s.tabs.find((t) => t.id === c.tab_id);
+        if (tab?.state !== "waiting") continue;
+        started.add(c.id);
+        typing.add(tab.id);
+        void typeCommand(tab.id, c.command)
+          .catch(() => {})
+          .finally(() => useStore.getState().dropCommand(c.id));
+      }
+    });
+  }, []);
+}
+
 /** Records the group of every tab's Claude session whenever tabs change. */
 function useSessionGroups() {
   useEffect(() => {
@@ -436,6 +457,7 @@ function App() {
   useBackendBridge();
   useTitlePoll();
   useSessionGroups();
+  useQueuedCommands();
   useWatchdog();
   useShortcuts();
   useDetachedWindows();

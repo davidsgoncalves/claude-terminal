@@ -55,6 +55,8 @@ export interface CommandSuggestion {
   tab_id: string | null;
   command: string;
   reason: string | null;
+  /** Clicked while Claude was busy: runs as soon as the session waits. */
+  queued?: boolean;
 }
 
 /** A subagent a tab's Claude session started and has not finished. */
