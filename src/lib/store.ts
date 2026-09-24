@@ -114,6 +114,8 @@ interface Store {
   questions: QuestionItem[];
   /** Tabs whose terminal is shown in a window of its own. */
   detached: string[];
+  /** Tab whose Cmd+F bar is open. */
+  searchTabId: string | null;
   /** Prompts kept for reuse. */
   prompts: SavedPrompt[];
   /** Recently closed tabs, newest last, for Cmd+Shift+T. */
@@ -143,6 +145,7 @@ interface Store {
   reattachTab: (id: string) => void;
   setGitInfo: (id: string, info: GitInfo | null) => void;
   reopenClosedTab: () => void;
+  openSearch: (tabId: string | null) => void;
   addPrompt: (name: string, text: string) => void;
   updatePrompt: (id: string, patch: Partial<Omit<SavedPrompt, "id">>) => void;
   removePrompt: (id: string) => void;
@@ -214,6 +217,7 @@ export const useStore = create<Store>()(
       gitByTab: {},
       closedTabs: [],
       prompts: [],
+      searchTabId: null,
 
       addGroup: (name, folderId = null) => {
         const id = newId();
@@ -370,6 +374,7 @@ export const useStore = create<Store>()(
       updatePrompt: (id, patch) =>
         set((s) => ({ prompts: s.prompts.map((p) => (p.id === id ? { ...p, ...patch } : p)) })),
       removePrompt: (id) => set((s) => ({ prompts: s.prompts.filter((p) => p.id !== id) })),
+      openSearch: (searchTabId) => set({ searchTabId }),
       reopenClosedTab: () => {
         const s = get();
         const last = s.closedTabs[s.closedTabs.length - 1];

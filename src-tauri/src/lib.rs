@@ -1,4 +1,5 @@
 mod db;
+mod files;
 mod git;
 mod hooks;
 mod install;
@@ -43,6 +44,9 @@ pub fn run() {
             db::state_save,
             db::metrics_summary,
             git::git_info,
+            files::link_open,
+            files::path_exists,
+            files::drop_save,
             paths::path_check,
             paths::home_dir,
             install::install_kind,

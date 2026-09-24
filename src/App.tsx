@@ -16,6 +16,7 @@ import { UpdateBanner } from "./components/UpdateBanner";
 import { PaneOverlay } from "./components/PaneOverlay";
 import { EmptyPane } from "./components/EmptyPane";
 import { EditorPanel } from "./components/EditorPanel";
+import { TerminalSearch } from "./components/TerminalSearch";
 import { defaultGroupId, ensureUngrouped, openSessionInGroup, useStore } from "./lib/store";
 import { tabPatchFor } from "./lib/hookState";
 import { decodeBase64, serializers, terminals } from "./lib/terminals";
@@ -202,6 +203,10 @@ function useShortcuts() {
         if (key === "w" && !e.shiftKey) return void (s.activeTabId && s.closeTab(s.activeTabId));
         if (key === "p" && e.shiftKey) return void s.openModal(s.modal?.kind === "prompts" ? null : { kind: "prompts" });
         if (key === "p" && !e.shiftKey) return void s.openModal(s.modal?.kind === "switcher" ? null : { kind: "switcher" });
+        if (key === "f" && !e.shiftKey) {
+          const target = s.panes[s.focusedPane] ?? s.activeTabId;
+          return void (target && !s.detached.includes(target) && s.openSearch(target));
+        }
         if (key === "b") return void s.toggleSidebar();
         if (key === "e") return void s.toggleEvents();
         if (key === ",") return void s.openModal({ kind: "settings" });
@@ -236,6 +241,7 @@ function useDetachedWindows() {
           data: serializers.get(id)?.serialize() ?? "",
           cols: term?.cols ?? 80,
           rows: term?.rows ?? 24,
+          cwd: store().tabs.find((t) => t.id === id)?.cwd ?? null,
         };
         void emitTo(detachedLabel(id), DETACH_SNAPSHOT, snapshot);
       }),
@@ -343,7 +349,7 @@ function App() {
   const barPosition = useStore((s) => s.barPosition);
   const groups = useStore((s) => s.groups);
   const borderWidth = useStore((s) => s.terminalBorder);
-  const { splitMode, panes, focusedPane, focusPane, detached } = useStore();
+  const { splitMode, panes, focusedPane, focusPane, detached, searchTabId, openSearch } = useStore();
   const slots = paneCount(splitMode);
   const paneOf = (tabId: string) => panes.slice(0, slots).indexOf(tabId);
   const colorOf = (tab: (typeof tabs)[number]) =>
@@ -394,6 +400,14 @@ function App() {
                   splitMode,
                   Math.max(0, panes.slice(0, slots).indexOf(editorRequest.tab_id ?? "") ),
                 )}
+              />
+            )}
+            {searchTabId && paneOf(searchTabId) !== -1 && (
+              <TerminalSearch
+                key={searchTabId}
+                tabId={searchTabId}
+                rect={paneRect(splitMode, paneOf(searchTabId))}
+                onClose={() => openSearch(null)}
               />
             )}
             <PaneOverlay />

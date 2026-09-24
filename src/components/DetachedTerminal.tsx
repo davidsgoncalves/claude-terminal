@@ -5,6 +5,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { decodeBase64, TERMINAL_OPTIONS } from "../lib/terminals";
+import { attachLinks, carriesFiles, pasteDroppedFiles } from "../lib/termExtras";
 import {
   DETACH_CLOSED,
   DETACH_READY,
@@ -37,6 +38,8 @@ export function DetachedTerminal({ tabId }: { tabId: string }) {
     const fit = new FitAddon();
     term.loadAddon(fit);
     term.open(el);
+    let cwd: string | null = null;
+    const links = attachLinks(term, () => cwd);
 
     const resize = () => {
       fit.fit();
@@ -51,6 +54,7 @@ export function DetachedTerminal({ tabId }: { tabId: string }) {
     });
     const unSnap = listen<DetachSnapshot>(DETACH_SNAPSHOT, (ev) => {
       if (ev.payload.id !== tabId || ready) return;
+      cwd = ev.payload.cwd;
       term.resize(ev.payload.cols, ev.payload.rows);
       term.write(ev.payload.data, () => {
         ready = true;
@@ -87,6 +91,7 @@ export function DetachedTerminal({ tabId }: { tabId: string }) {
     return () => {
       observer.disconnect();
       dataSub.dispose();
+      links.dispose();
       term.dispose();
       for (const p of [unTitle, unData, unSnap, unExit, unClose]) void p.then((u) => u());
     };
@@ -113,7 +118,18 @@ export function DetachedTerminal({ tabId }: { tabId: string }) {
           Voltar para a principal
         </button>
       </header>
-      <div className="detached-term" ref={ref} />
+      <div
+        className="detached-term"
+        ref={ref}
+        onDragOver={(e) => {
+          if (carriesFiles(e.dataTransfer)) e.preventDefault();
+        }}
+        onDrop={(e) => {
+          if (!carriesFiles(e.dataTransfer)) return;
+          e.preventDefault();
+          void pasteDroppedFiles(tabId, e.dataTransfer);
+        }}
+      />
     </div>
   );
 }

@@ -16,6 +16,8 @@ export interface DetachSnapshot {
   data: string;
   cols: number;
   rows: number;
+  /** Tab folder, for resolving relative paths in links. */
+  cwd: string | null;
 }
 
 export function detachedLabel(tabId: string): string {

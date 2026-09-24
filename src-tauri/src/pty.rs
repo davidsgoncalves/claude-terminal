@@ -84,6 +84,9 @@ pub fn pty_spawn(
 
     cmd.env("TERM", "xterm-256color");
     cmd.env("COLORTERM", "truecolor");
+    // Programs that detect hyperlink support (Claude Code included) then print
+    // file paths and URLs as OSC 8 links, which the terminal makes clickable.
+    cmd.env("FORCE_HYPERLINK", "1");
     cmd.env("CLAUDE_TERMINAL_TAB_ID", &id);
     if let Some(dir) = cwd.map(PathBuf::from).or_else(dirs::home_dir) {
         cmd.cwd(dir);

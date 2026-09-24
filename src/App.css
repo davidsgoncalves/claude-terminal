@@ -741,3 +741,17 @@ button.star.on { color: var(--accent); }
 .changelog-head time { margin-left: auto; color: var(--muted); font-size: 11px; }
 .changelog-tag { font-size: 10px; color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; padding: 0 5px; }
 .changelog ul { margin: 4px 0 0; padding-left: 18px; font-size: 12px; color: var(--fg); display: flex; flex-direction: column; gap: 2px; }
+
+/* ---------- terminal search ---------- */
+.term-search {
+  position: absolute; z-index: 70; width: 320px; display: flex; align-items: center; gap: 2px; padding: 4px;
+  background: var(--panel-2); border: 1px solid var(--border); border-radius: 7px; box-shadow: 0 8px 24px rgba(0,0,0,.45);
+}
+.term-search input {
+  flex: 1; min-width: 0; background: var(--bg); border: 1px solid var(--border); color: var(--fg);
+  border-radius: 5px; font: inherit; font-size: 12px; padding: 3px 6px; outline: none;
+}
+.term-search input:focus { border-color: var(--accent); }
+.term-search-count { font-size: 10px; color: var(--muted); min-width: 34px; text-align: center; font-variant-numeric: tabular-nums; }
+.term-search .icon-btn { font-size: 11px; }
+.term-search .icon-btn.on { color: var(--accent); }
