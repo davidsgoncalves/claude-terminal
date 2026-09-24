@@ -36,9 +36,10 @@ Baixe o instalador da [última release](../../releases/latest):
 
 | Sistema | Arquivo |
 | --- | --- |
-| macOS Apple Silicon | `.dmg` com `aarch64` no nome |
-| macOS Intel | `.dmg` com `x64` no nome |
-| Linux | `.AppImage` ou `.deb` |
+| macOS Apple Silicon (M1 ou mais novo) | `macOS-Apple-Silicon.dmg` |
+| macOS Intel | `macOS-Intel.dmg` |
+| Linux | `Linux.AppImage` |
+| Debian ou Ubuntu | `Linux-Debian-Ubuntu.deb` |
 
 O app verifica atualizações ao abrir e a cada seis horas. No macOS e no
 AppImage ele instala sozinho depois da sua confirmação. Instalado pelo `.deb`,

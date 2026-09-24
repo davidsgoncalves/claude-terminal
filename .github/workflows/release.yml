@@ -100,7 +100,14 @@ jobs:
         with:
           tagName: v${{ needs.decide.outputs.version }}
           releaseName: "Claude Terminal v${{ needs.decide.outputs.version }}"
-          releaseBody: "Instaladores para macOS e Linux. O app se atualiza sozinho a partir daqui."
+          releaseBody: |
+            Qual arquivo baixar:
+            - Mac com chip Apple (M1 ou mais novo): `macOS-Apple-Silicon.dmg`
+            - Mac com processador Intel: `macOS-Intel.dmg`
+            - Linux (qualquer distribuição): `Linux.AppImage`
+            - Debian ou Ubuntu: `Linux-Debian-Ubuntu.deb`
+
+            Os arquivos `_atualizacao` e `.sig` são usados pela atualização automática e não precisam ser baixados. O app se atualiza sozinho a partir daqui.
           releaseDraft: false
           prerelease: false
           # Composed once by the manifest job; parallel jobs overwrote each other.
@@ -112,6 +119,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Give the assets readable names
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: v${{ needs.decide.outputs.version }}
+        run: node .github/scripts/rename-assets.mjs
       - name: Compose the updater manifest
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -12,7 +12,12 @@
       "Pedidos de permissão podem ser aprovados de vez para um grupo.",
       "⌘⇧T reabre a última aba fechada.",
       "Prompts salvos, inseridos com ⌘⇧P.",
-      "Changelog na aba Sobre."
+      "⌘-clique abre links e caminhos de arquivo impressos no terminal.",
+      "⌘F busca no histórico do terminal.",
+      "Soltar um arquivo no terminal cola o caminho dele.",
+      "No Linux, o ç não se repete mais ao digitar com teclado ABNT.",
+      "Changelog na aba Sobre.",
+      "Os arquivos do release dizem para qual sistema são."
     ]
   },
   {

@@ -9,7 +9,9 @@ fn strip_position(target: &str) -> &str {
     let mut rest = target;
     for _ in 0..2 {
         match rest.rsplit_once(':') {
-            Some((head, tail)) if !tail.is_empty() && tail.chars().all(|c| c.is_ascii_digit()) => rest = head,
+            Some((head, tail)) if !tail.is_empty() && tail.chars().all(|c| c.is_ascii_digit()) => {
+                rest = head
+            }
             _ => break,
         }
     }
@@ -35,7 +37,10 @@ fn resolve(target: &str, cwd: Option<&str>) -> PathBuf {
 #[tauri::command]
 pub fn link_open(app: AppHandle, target: String, cwd: Option<String>) -> Result<(), String> {
     if target.starts_with("http://") || target.starts_with("https://") {
-        return app.opener().open_url(target, None::<&str>).map_err(|e| e.to_string());
+        return app
+            .opener()
+            .open_url(target, None::<&str>)
+            .map_err(|e| e.to_string());
     }
     let path = match target.strip_prefix("file://") {
         Some(rest) => PathBuf::from(rest.trim_start_matches("localhost")),
