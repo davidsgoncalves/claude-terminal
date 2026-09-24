@@ -1,5 +1,6 @@
 import { useState, type DragEvent } from "react";
 import { openSessionInGroup, useStore } from "../lib/store";
+import { droppedOutside } from "../lib/detach";
 import { STATE_LABEL, type Group, type StatusPayload, type Tab } from "../lib/types";
 
 function ctxClass(pct: number): string {
@@ -71,7 +72,8 @@ function InlineName({ value, onCommit, className }: { value: string; onCommit: (
 }
 
 function TabRow({ tab, active }: { tab: Tab; active: boolean }) {
-  const { activateTab, closeTab, renameTab, openTabMenu } = useStore();
+  const { activateTab, closeTab, renameTab, openTabMenu, detachTab } = useStore();
+  const isDetached = useStore((s) => s.detached.includes(tab.id));
   const status = useStore((s) => s.statusByTab[tab.id]);
   const stale = useStore((s) => s.alerted.includes(tab.id));
   return (
@@ -79,6 +81,9 @@ function TabRow({ tab, active }: { tab: Tab; active: boolean }) {
       className={`tab-row state-${tab.state} ${active ? "active" : ""} ${stale ? "stale" : ""}`}
       draggable
       onDragStart={(e) => e.dataTransfer.setData("text/tab-id", tab.id)}
+      onDragEnd={(e) => {
+        if (e.dataTransfer.dropEffect === "none" && droppedOutside(e)) detachTab(tab.id, { x: e.screenX, y: e.screenY });
+      }}
       onClick={() => activateTab(tab.id)}
       onContextMenu={(e) => {
         e.preventDefault();
@@ -90,6 +95,11 @@ function TabRow({ tab, active }: { tab: Tab; active: boolean }) {
       <span className="dot" />
       <InlineName value={tab.title} onCommit={(v) => renameTab(tab.id, v)} className="tab-title" />
       <span className="tab-trailing">
+        {isDetached && (
+          <span className="detached-mark" title="Em outra janela · clique para trazer à frente">
+            ↗
+          </span>
+        )}
         <ContextGauge status={status} />
         <button
           className="icon-btn close"

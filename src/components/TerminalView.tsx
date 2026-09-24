@@ -2,7 +2,8 @@ import { useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
-import { terminals } from "../lib/terminals";
+import { SerializeAddon } from "@xterm/addon-serialize";
+import { serializers, terminals, TERMINAL_OPTIONS } from "../lib/terminals";
 import { takePendingResume } from "../lib/restored";
 import type { Tab } from "../lib/types";
 
@@ -31,17 +32,11 @@ export function TerminalView({ tab, visible, focused, rect, color, onFocus, onCo
     const el = ref.current;
     if (!el) return;
 
-    const term = new Terminal({
-      fontFamily: "Menlo, Monaco, 'Courier New', monospace",
-      fontSize: 13,
-      cursorBlink: true,
-      allowProposedApi: true,
-      scrollback: 5000,
-      macOptionIsMeta: true,
-      theme: { background: "#0f1115", foreground: "#d6d8de", cursor: "#d97757" },
-    });
+    const term = new Terminal(TERMINAL_OPTIONS);
     const fit = new FitAddon();
+    const serializer = new SerializeAddon();
     term.loadAddon(fit);
+    term.loadAddon(serializer);
     term.open(el);
     fit.fit();
 
@@ -57,6 +52,7 @@ export function TerminalView({ tab, visible, focused, rect, color, onFocus, onCo
     });
 
     terminals.set(tab.id, term);
+    serializers.set(tab.id, serializer);
     termRef.current = term;
     fitRef.current = fit;
 
@@ -83,6 +79,7 @@ export function TerminalView({ tab, visible, focused, rect, color, onFocus, onCo
       observer.disconnect();
       dataSub.dispose();
       terminals.delete(tab.id);
+      serializers.delete(tab.id);
       term.dispose();
       invoke("pty_kill", { id: tab.id }).catch(() => {});
     };

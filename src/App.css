@@ -636,3 +636,21 @@ button.star.on { color: var(--accent); }
 .settings-section .row { display: flex; gap: 8px; }
 
 .update-bar.restart-failed { background: #3a352a; }
+
+/* ---------- detached terminal windows ---------- */
+.detached-mark { color: var(--muted); font-size: 11px; }
+.detached { display: flex; flex-direction: column; height: 100vh; background: #0f1115; }
+.detached-bar {
+  display: flex; align-items: center; gap: 8px; padding: 4px 8px; flex-shrink: 0;
+  background: var(--panel); border-bottom: 1px solid var(--border); font-size: 12px;
+}
+.detached-handle {
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: var(--muted); cursor: grab; user-select: none;
+}
+.detached-back {
+  background: transparent; border: 1px solid var(--border); color: var(--fg); border-radius: 5px;
+  padding: 2px 8px; font-size: 11px; cursor: pointer; flex-shrink: 0;
+}
+.detached-back:hover { border-color: var(--accent); }
+.detached-term { flex: 1; min-height: 0; padding: 4px; }
