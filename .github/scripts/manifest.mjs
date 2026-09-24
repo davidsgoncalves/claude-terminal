@@ -2,12 +2,14 @@
 // Each matrix job writing its own latest.json raced, so the file is composed
 // once, after every platform has uploaded.
 import { execFileSync } from "node:child_process";
-import { readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
-import { join } from "node:path";
+import { writeFileSync } from "node:fs";
 
 const tag = process.env.TAG;
-if (!tag) {
-  console.error("TAG is required");
+const repo = process.env.GITHUB_REPOSITORY;
+// By id: the release is still a draft, which lookups by tag do not find.
+const releaseId = process.env.RELEASE_ID;
+if (!tag || !repo || !releaseId) {
+  console.error("TAG, GITHUB_REPOSITORY and RELEASE_ID are required");
   process.exit(1);
 }
 
@@ -25,16 +27,18 @@ const PLATFORMS = [
   { suffix: ".deb", key: "linux-x86_64-deb" },
 ];
 
-const assets = JSON.parse(gh(["release", "view", tag, "--json", "assets"])).assets.map((a) => a.name);
+const release = JSON.parse(gh(["api", `repos/${repo}/releases/${releaseId}`]));
+const assets = release.assets.map((a) => a.name);
 
-const dir = "sigs";
-mkdirSync(dir, { recursive: true });
-gh(["release", "download", tag, "--pattern", "*.sig", "--dir", dir, "--clobber"]);
+// Signatures are small text files; read each through the assets API.
 const signatures = new Map(
-  readdirSync(dir).map((f) => [f.replace(/\.sig$/, ""), readFileSync(join(dir, f), "utf8").trim()]),
+  release.assets
+    .filter((a) => a.name.endsWith(".sig"))
+    .map((a) => [
+      a.name.replace(/\.sig$/, ""),
+      gh(["api", "-H", "Accept: application/octet-stream", `repos/${repo}/releases/assets/${a.id}`]).trim(),
+    ]),
 );
-
-const repo = process.env.GITHUB_REPOSITORY;
 const platforms = {};
 for (const { suffix, key } of PLATFORMS) {
   const asset = assets.find((name) => name.endsWith(suffix) && !name.endsWith(".sig"));
@@ -67,4 +71,5 @@ const manifest = {
 
 writeFileSync("latest.json", `${JSON.stringify(manifest, null, 2)}\n`);
 console.log(`manifest for ${tag}: ${Object.keys(platforms).join(", ")}`);
+// gh finds a draft by its tag when uploading, and --clobber replaces a rerun's file.
 gh(["release", "upload", tag, "latest.json", "--clobber"]);
