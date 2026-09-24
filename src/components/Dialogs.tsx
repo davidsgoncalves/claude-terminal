@@ -4,11 +4,12 @@ import { getVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { findUpdate, installKind, RELEASES_URL } from "../lib/update";
 import { open } from "@tauri-apps/plugin-dialog";
-import { useStore } from "../lib/store";
+import { useStore, type SettingsTab } from "../lib/store";
 import { Modal } from "./Modal";
 import { AddFolder, FolderChoice } from "./FolderFields";
 import { BORDER_OPTIONS } from "../lib/types";
 import { QuickSwitcher } from "./QuickSwitcher";
+import { PromptPicker } from "./PromptPicker";
 import type { PathCheck } from "../lib/types";
 
 const INSTALL_LABEL: Record<string, string> = {
@@ -70,7 +71,70 @@ function AboutTab() {
   );
 }
 
-function SettingsDialog({ onClose }: { onClose: () => void }) {
+function PromptsTab() {
+  const { prompts, addPrompt, updatePrompt, removePrompt } = useStore();
+  const [name, setName] = useState("");
+  const [text, setText] = useState("");
+
+  const add = () => {
+    if (!text.trim()) return;
+    addPrompt(name.trim() || text.trim().split("\n")[0].slice(0, 40), text.trim());
+    setName("");
+    setText("");
+  };
+
+  return (
+    <>
+      <section className="settings-section">
+        <h3>Novo prompt</h3>
+        <p className="hint">⌘⇧P insere um destes na sessão ativa.</p>
+        <input placeholder="Nome (opcional)" value={name} onChange={(e) => setName(e.target.value)} />
+        <textarea
+          className="prompt-text"
+          placeholder="Texto do prompt"
+          rows={4}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+        <div className="row">
+          <button className="ghost auto" onClick={add} disabled={!text.trim()}>
+            Salvar prompt
+          </button>
+        </div>
+      </section>
+
+      {prompts.length > 0 && (
+        <section className="settings-section">
+          <h3>Salvos</h3>
+          <ul className="prompt-manage">
+            {prompts.map((p) => (
+              <li key={p.id}>
+                <div className="row">
+                  <input
+                    className="prompt-name"
+                    defaultValue={p.name}
+                    onBlur={(e) => e.target.value.trim() && updatePrompt(p.id, { name: e.target.value.trim() })}
+                  />
+                  <button className="icon-btn" title="Remover" onClick={() => removePrompt(p.id)}>
+                    ×
+                  </button>
+                </div>
+                <textarea
+                  className="prompt-text"
+                  rows={3}
+                  defaultValue={p.text}
+                  onBlur={(e) => e.target.value.trim() && updatePrompt(p.id, { text: e.target.value.trim() })}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </>
+  );
+}
+
+function SettingsDialog({ initialTab, onClose }: { initialTab?: SettingsTab; onClose: () => void }) {
   const {
     folders,
     removeFolder,
@@ -88,7 +152,7 @@ function SettingsDialog({ onClose }: { onClose: () => void }) {
   } = useStore();
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
-  const [tab, setTab] = useState<"aparencia" | "pastas" | "sobre">("aparencia");
+  const [tab, setTab] = useState<SettingsTab>(initialTab ?? "aparencia");
 
   return (
     <Modal title="Configurações" onClose={onClose}>
@@ -99,12 +163,17 @@ function SettingsDialog({ onClose }: { onClose: () => void }) {
         <button className={tab === "pastas" ? "on" : ""} onClick={() => setTab("pastas")}>
           Pastas
         </button>
+        <button className={tab === "prompts" ? "on" : ""} onClick={() => setTab("prompts")}>
+          Prompts
+        </button>
         <button className={tab === "sobre" ? "on" : ""} onClick={() => setTab("sobre")}>
           Sobre
         </button>
       </nav>
 
       {tab === "sobre" && <AboutTab />}
+
+      {tab === "prompts" && <PromptsTab />}
 
       {tab === "aparencia" && (
       <>
@@ -348,8 +417,9 @@ export function Dialogs() {
   const { modal, openModal } = useStore();
   const close = () => openModal(null);
   if (!modal) return null;
-  if (modal.kind === "settings") return <SettingsDialog onClose={close} />;
+  if (modal.kind === "settings") return <SettingsDialog initialTab={modal.tab} onClose={close} />;
   if (modal.kind === "newGroup") return <NewGroupDialog onClose={close} />;
   if (modal.kind === "switcher") return <QuickSwitcher onClose={close} />;
+  if (modal.kind === "prompts") return <PromptPicker onClose={close} />;
   return <PickFolderDialog groupId={modal.groupId} onClose={close} />;
 }

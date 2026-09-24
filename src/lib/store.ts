@@ -13,6 +13,7 @@ import {
   UNGROUPED_NAME,
   type Folder,
   type GitInfo,
+  type SavedPrompt,
   type Group,
   type HookEvent,
   type HookSetup,
@@ -55,11 +56,14 @@ function rememberClosed(list: ClosedTab[], tabs: Tab[]): ClosedTab[] {
   return [...list, ...added].slice(-CLOSED_TABS_MAX);
 }
 
+export type SettingsTab = "aparencia" | "pastas" | "prompts" | "sobre";
+
 export type Modal =
   | null
-  | { kind: "settings" }
+  | { kind: "settings"; tab?: SettingsTab }
   | { kind: "newGroup" }
   | { kind: "switcher" }
+  | { kind: "prompts" }
   | { kind: "pickFolder"; groupId: string };
 
 interface Store {
@@ -110,6 +114,8 @@ interface Store {
   questions: QuestionItem[];
   /** Tabs whose terminal is shown in a window of its own. */
   detached: string[];
+  /** Prompts kept for reuse. */
+  prompts: SavedPrompt[];
   /** Recently closed tabs, newest last, for Cmd+Shift+T. */
   closedTabs: ClosedTab[];
   /** Git state of each tab's folder; absent outside a repository. */
@@ -137,6 +143,9 @@ interface Store {
   reattachTab: (id: string) => void;
   setGitInfo: (id: string, info: GitInfo | null) => void;
   reopenClosedTab: () => void;
+  addPrompt: (name: string, text: string) => void;
+  updatePrompt: (id: string, patch: Partial<Omit<SavedPrompt, "id">>) => void;
+  removePrompt: (id: string) => void;
   patchTab: (id: string, patch: Partial<Tab>) => void;
 
   toggleSidebar: () => void;
@@ -204,6 +213,7 @@ export const useStore = create<Store>()(
       detached: [],
       gitByTab: {},
       closedTabs: [],
+      prompts: [],
 
       addGroup: (name, folderId = null) => {
         const id = newId();
@@ -356,6 +366,10 @@ export const useStore = create<Store>()(
         const tab = get().tabs.find((t) => t.id === id);
         if (tab && tab.state !== "dormant") get().activateTab(id);
       },
+      addPrompt: (name, text) => set((s) => ({ prompts: [...s.prompts, { id: newId(), name, text }] })),
+      updatePrompt: (id, patch) =>
+        set((s) => ({ prompts: s.prompts.map((p) => (p.id === id ? { ...p, ...patch } : p)) })),
+      removePrompt: (id) => set((s) => ({ prompts: s.prompts.filter((p) => p.id !== id) })),
       reopenClosedTab: () => {
         const s = get();
         const last = s.closedTabs[s.closedTabs.length - 1];
@@ -558,6 +572,7 @@ export const useStore = create<Store>()(
         barPosition: s.barPosition,
         terminalBorder: s.terminalBorder,
         tabTitleWrap: s.tabTitleWrap,
+        prompts: s.prompts,
         splitMode: s.splitMode,
         panes: s.panes,
       }),

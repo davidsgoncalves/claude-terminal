@@ -49,6 +49,13 @@ export type Layout = "sidebar" | "topbar";
 /** Which edge of the window holds the limits and split bar. */
 export type BarPosition = "top" | "bottom";
 
+/** A prompt kept for reuse, inserted with Cmd+Shift+P. */
+export interface SavedPrompt {
+  id: string;
+  name: string;
+  text: string;
+}
+
 /** Branch and pending changes of a tab's folder. */
 export interface GitInfo {
   branch: string;
