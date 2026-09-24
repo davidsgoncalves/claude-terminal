@@ -824,3 +824,16 @@ button.star.on { color: var(--accent); }
 }
 .empty-pane.drop-target { outline: 2px dashed var(--accent); outline-offset: -6px; }
 .perm-item.command { border-left-color: var(--accent); }
+
+/* Commands Claude asked to run, over the pane of the tab that asked. */
+.pane-commands {
+  position: absolute; z-index: 65; list-style: none; margin: 0; padding: 0 14px 14px;
+  display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end; gap: 8px;
+  pointer-events: none;
+}
+.pane-commands .perm-item.overlay {
+  pointer-events: auto; width: min(460px, 100%); box-shadow: 0 10px 30px rgba(0,0,0,.5);
+  animation: pop-in .14s cubic-bezier(.22,.9,.3,1);
+}
+.perm-item.overlay .perm-meta { display: none; }
+.pane-commands .perm-item.overlay { background: var(--panel-2); }
