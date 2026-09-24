@@ -33,7 +33,7 @@ export function HiddenGroups({ variant }: { variant: "sidebar" | "strip" }) {
   const pending = tabs.filter((t) => hiddenIds.has(t.groupId) && t.state === "permission").length;
 
   return (
-    <div ref={ref} className={`hidden-groups ${variant}`}>
+    <div ref={ref} className={`hidden-groups in-${variant}`}>
       <button
         className={variant === "sidebar" ? "ghost hidden-toggle" : "strip-new-group hidden-toggle"}
         onClick={() => setOpen((o) => !o)}

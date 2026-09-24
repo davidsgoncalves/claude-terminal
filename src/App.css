@@ -678,16 +678,16 @@ button.star.on { color: var(--accent); }
 /* ---------- hidden groups ---------- */
 .hidden-groups { position: relative; flex-shrink: 0; }
 .hidden-toggle { display: flex; align-items: center; gap: 6px; }
-.hidden-groups.sidebar .hidden-toggle { color: var(--muted); }
+.hidden-groups.in-sidebar .hidden-toggle { color: var(--muted); }
 .hidden-caret { margin-left: auto; color: var(--muted); }
-.hidden-groups.strip .hidden-caret { margin-left: 2px; }
+.hidden-groups.in-strip .hidden-caret { margin-left: 2px; }
 .hidden-list {
   display: flex; flex-direction: column; gap: 2px; padding: 4px;
   background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
 }
-.hidden-groups.sidebar .hidden-list { margin-bottom: 6px; order: -1; max-height: 40vh; overflow-y: auto; }
-.hidden-groups.sidebar { display: flex; flex-direction: column; }
-.hidden-groups.strip .hidden-list {
+.hidden-groups.in-sidebar .hidden-list { margin-bottom: 6px; order: -1; max-height: 40vh; overflow-y: auto; }
+.hidden-groups.in-sidebar { display: flex; flex-direction: column; }
+.hidden-groups.in-strip .hidden-list {
   position: absolute; top: calc(100% + 6px); right: 0; z-index: 200; min-width: 240px;
   box-shadow: 0 10px 30px rgba(0,0,0,.5);
 }
