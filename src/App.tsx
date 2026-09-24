@@ -463,7 +463,8 @@ function App() {
   const barPosition = useStore((s) => s.barPosition);
   const groups = useStore((s) => s.groups);
   const borderWidth = useStore((s) => s.terminalBorder);
-  const { splitMode, panes, focusedPane, focusPane, detached, searchTabId, openSearch, commands } = useStore();
+  const { splitMode, panes, focusedPane, focusPane, detached, searchTabId, openSearch, commands, questions } =
+    useStore();
   const slots = paneCount(splitMode);
   const paneOf = (tabId: string) => panes.slice(0, slots).indexOf(tabId);
   const colorOf = (tab: (typeof tabs)[number]) =>
@@ -498,6 +499,11 @@ function App() {
                   onFocus={() => slot !== -1 && focusPane(slot)}
                   onDropTab={(id) => slot !== -1 && id !== t.id && useStore.getState().assignToPane(id, slot)}
                   onDropSession={(ref) => slot !== -1 && openSession(ref, { pane: slot })}
+                  attention={
+                    t.state === "permission" ||
+                    questions.some((q) => q.tab_id === t.id) ||
+                    commands.some((c) => c.tab_id === t.id)
+                  }
                   onContextMenu={(e) => {
                     e.preventDefault();
                     useStore.getState().openTabMenu({ x: e.clientX, y: e.clientY, tabId: t.id });
