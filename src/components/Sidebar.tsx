@@ -2,7 +2,7 @@ import { useState, type DragEvent } from "react";
 import { openSessionInGroup, useStore } from "../lib/store";
 import { droppedOutside } from "../lib/detach";
 import { HiddenGroups } from "./HiddenGroups";
-import { STATE_LABEL, type Group, type StatusPayload, type Tab } from "../lib/types";
+import { STATE_LABEL, type GitInfo, type Group, type StatusPayload, type Tab } from "../lib/types";
 
 function ctxClass(pct: number): string {
   if (pct >= 90) return "crit";
@@ -72,12 +72,32 @@ function InlineName({ value, onCommit, className }: { value: string; onCommit: (
   );
 }
 
+/** Branch and pending changes under a tab's name. */
+function GitLine({ git }: { git: GitInfo }) {
+  const dirty = git.files > 0;
+  return (
+    <span
+      className="tab-git"
+      title={dirty ? `${git.branch} · ${git.files} arquivo(s) alterado(s), +${git.added} −${git.removed}` : `${git.branch} · sem alterações`}
+    >
+      <span className="git-branch">⎇ {git.branch}</span>
+      {dirty && (
+        <>
+          <span className="git-add">+{git.added}</span>
+          <span className="git-del">−{git.removed}</span>
+        </>
+      )}
+    </span>
+  );
+}
+
 function TabRow({ tab, active }: { tab: Tab; active: boolean }) {
   const { activateTab, closeTab, renameTab, openTabMenu, detachTab } = useStore();
   const isDetached = useStore((s) => s.detached.includes(tab.id));
   const status = useStore((s) => s.statusByTab[tab.id]);
   const stale = useStore((s) => s.alerted.includes(tab.id));
   const wrap = useStore((s) => s.tabTitleWrap === "wrap");
+  const git = useStore((s) => s.gitByTab[tab.id]);
   return (
     <li
       className={`tab-row state-${tab.state} ${active ? "active" : ""} ${stale ? "stale" : ""} ${wrap ? "wrap" : ""}`}
@@ -95,7 +115,10 @@ function TabRow({ tab, active }: { tab: Tab; active: boolean }) {
       title={tab.pendingMessage ?? STATE_LABEL[tab.state]}
     >
       <span className="dot" />
-      <InlineName value={tab.title} onCommit={(v) => renameTab(tab.id, v)} className="tab-title" />
+      <span className="tab-main">
+        <InlineName value={tab.title} onCommit={(v) => renameTab(tab.id, v)} className="tab-title" />
+        {git && <GitLine git={git} />}
+      </span>
       <span className="tab-trailing">
         {isDetached && (
           <span className="detached-mark" title="Em outra janela · clique para trazer à frente">

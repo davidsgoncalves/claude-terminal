@@ -11,6 +11,7 @@ import {
   UNGROUPED_ID,
   UNGROUPED_NAME,
   type Folder,
+  type GitInfo,
   type Group,
   type HookEvent,
   type HookSetup,
@@ -34,6 +35,7 @@ export type Modal =
   | null
   | { kind: "settings" }
   | { kind: "newGroup" }
+  | { kind: "switcher" }
   | { kind: "pickFolder"; groupId: string };
 
 interface Store {
@@ -84,6 +86,8 @@ interface Store {
   questions: QuestionItem[];
   /** Tabs whose terminal is shown in a window of its own. */
   detached: string[];
+  /** Git state of each tab's folder; absent outside a repository. */
+  gitByTab: Record<string, GitInfo>;
 
   addGroup: (name?: string, folderId?: string | null) => string;
   setGroupFolder: (id: string, folderId: string | null) => void;
@@ -103,6 +107,7 @@ interface Store {
   moveTab: (id: string, groupId: string) => void;
   detachTab: (id: string, at?: { x: number; y: number }) => void;
   reattachTab: (id: string) => void;
+  setGitInfo: (id: string, info: GitInfo | null) => void;
   patchTab: (id: string, patch: Partial<Tab>) => void;
 
   toggleSidebar: () => void;
@@ -168,6 +173,7 @@ export const useStore = create<Store>()(
       focusedPane: 0,
       questions: [],
       detached: [],
+      gitByTab: {},
 
       addGroup: (name, folderId = null) => {
         const id = newId();
@@ -305,6 +311,22 @@ export const useStore = create<Store>()(
         const tab = get().tabs.find((t) => t.id === id);
         if (tab && tab.state !== "dormant") get().activateTab(id);
       },
+      setGitInfo: (id, info) =>
+        set((s) => {
+          const prev = s.gitByTab[id];
+          if (!info) {
+            if (!prev) return s;
+            const { [id]: _dropped, ...gitByTab } = s.gitByTab;
+            return { gitByTab };
+          }
+          const same =
+            prev &&
+            prev.branch === info.branch &&
+            prev.added === info.added &&
+            prev.removed === info.removed &&
+            prev.files === info.files;
+          return same ? s : { gitByTab: { ...s.gitByTab, [id]: info } };
+        }),
       patchTab: (id, patch) =>
         set((s) => ({ tabs: s.tabs.map((t) => (t.id === id ? { ...t, ...patch } : t)) })),
 

@@ -8,6 +8,7 @@ import { useStore } from "../lib/store";
 import { Modal } from "./Modal";
 import { AddFolder, FolderChoice } from "./FolderFields";
 import { BORDER_OPTIONS } from "../lib/types";
+import { QuickSwitcher } from "./QuickSwitcher";
 import type { PathCheck } from "../lib/types";
 
 const INSTALL_LABEL: Record<string, string> = {
@@ -349,5 +350,6 @@ export function Dialogs() {
   if (!modal) return null;
   if (modal.kind === "settings") return <SettingsDialog onClose={close} />;
   if (modal.kind === "newGroup") return <NewGroupDialog onClose={close} />;
+  if (modal.kind === "switcher") return <QuickSwitcher onClose={close} />;
   return <PickFolderDialog groupId={modal.groupId} onClose={close} />;
 }
