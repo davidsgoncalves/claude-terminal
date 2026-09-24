@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { defaultGroupId, openSessionInGroup, useStore } from "../lib/store";
 import { paneCount, paneRect } from "../lib/types";
+import { carriesTab } from "../lib/termExtras";
 
 /** Placeholder shown in a pane with no terminal, with its own opener. */
 export function EmptyPane({ index }: { index: number }) {
   const { tabs, panes, splitMode, groups, detached, assignToPane, focusPane } = useStore();
   const [open, setOpen] = useState(false);
+  const [dropping, setDropping] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,7 +35,23 @@ export function EmptyPane({ index }: { index: number }) {
   };
 
   return (
-    <div className="empty-pane" style={paneRect(splitMode, index)}>
+    <div
+      className={`empty-pane ${dropping ? "drop-target" : ""}`}
+      style={paneRect(splitMode, index)}
+      onDragOver={(e) => {
+        if (!carriesTab(e.dataTransfer)) return;
+        e.preventDefault();
+        setDropping(true);
+      }}
+      onDragLeave={() => setDropping(false)}
+      onDrop={(e) => {
+        setDropping(false);
+        const dragged = e.dataTransfer.getData("text/tab-id");
+        if (!dragged) return;
+        e.preventDefault();
+        assignToPane(dragged, index);
+      }}
+    >
       {!open ? (
         <button className="empty-pane-btn" onClick={() => setOpen(true)} title="Abrir um terminal aqui">
           <span className="plus">+</span>

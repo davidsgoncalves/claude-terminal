@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
@@ -6,7 +6,7 @@ import { SerializeAddon } from "@xterm/addon-serialize";
 import { SearchAddon } from "@xterm/addon-search";
 import { searches, serializers, terminals, TERMINAL_OPTIONS } from "../lib/terminals";
 import { actionOf, isAppShortcut } from "../lib/shortcuts";
-import { attachLinks, carriesFiles, fixLinuxInput, pasteDroppedFiles } from "../lib/termExtras";
+import { attachLinks, carriesFiles, carriesTab, fixLinuxInput, pasteDroppedFiles } from "../lib/termExtras";
 import { takePendingResume } from "../lib/restored";
 import type { Tab } from "../lib/types";
 
@@ -21,9 +21,12 @@ interface Props {
   color: string;
   onFocus: () => void;
   onContextMenu: (e: React.MouseEvent) => void;
+  /** A tab dragged from the list was dropped here. */
+  onDropTab: (tabId: string) => void;
 }
 
-export function TerminalView({ tab, visible, focused, rect, color, onFocus, onContextMenu }: Props) {
+export function TerminalView({ tab, visible, focused, rect, color, onFocus, onContextMenu, onDropTab }: Props) {
+  const [dropping, setDropping] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const termRef = useRef<Terminal | null>(null);
   const fitRef = useRef<FitAddon | null>(null);
@@ -111,7 +114,7 @@ export function TerminalView({ tab, visible, focused, rect, color, onFocus, onCo
   return (
     <div
       ref={ref}
-      className={`term-pane ${focused ? "focused" : ""}`}
+      className={`term-pane ${focused ? "focused" : ""} ${dropping ? "drop-target" : ""}`}
       style={{
         display: visible ? "block" : "none",
         ...rect,
@@ -120,9 +123,20 @@ export function TerminalView({ tab, visible, focused, rect, color, onFocus, onCo
       onMouseDown={onFocus}
       onContextMenu={onContextMenu}
       onDragOver={(e) => {
-        if (carriesFiles(e.dataTransfer)) e.preventDefault();
+        if (carriesTab(e.dataTransfer)) {
+          e.preventDefault();
+          setDropping(true);
+        } else if (carriesFiles(e.dataTransfer)) e.preventDefault();
       }}
+      onDragLeave={() => setDropping(false)}
       onDrop={(e) => {
+        setDropping(false);
+        const dragged = e.dataTransfer.getData("text/tab-id");
+        if (dragged) {
+          e.preventDefault();
+          onDropTab(dragged);
+          return;
+        }
         if (!carriesFiles(e.dataTransfer)) return;
         e.preventDefault();
         onFocus();
