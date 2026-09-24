@@ -715,3 +715,22 @@ button.star.on { color: var(--accent); }
 .perm-always:disabled { opacity: .4; cursor: default; }
 .menu-rule { display: flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; max-width: 260px; }
 .menu-rule code { flex: 1; min-width: 0; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+
+/* ---------- saved prompts ---------- */
+.prompt-text {
+  background: var(--bg); border: 1px solid var(--border); color: var(--fg); border-radius: 6px;
+  font: inherit; font-size: 12px; padding: 6px 8px; resize: vertical; outline: none; width: 100%; box-sizing: border-box;
+}
+.prompt-text:focus, .prompt-name:focus { border-color: var(--accent); }
+.prompt-manage { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.prompt-manage li { display: flex; flex-direction: column; gap: 4px; }
+.prompt-manage .row { display: flex; gap: 6px; align-items: center; }
+.prompt-name {
+  flex: 1; min-width: 0; background: transparent; border: 1px solid transparent; color: var(--fg);
+  border-radius: 5px; font: inherit; font-size: 12px; font-weight: 600; padding: 3px 6px; outline: none;
+}
+.prompt-name:hover { border-color: var(--border); }
+.switcher-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 14px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted);
+}
