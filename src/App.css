@@ -401,9 +401,12 @@ button.star.on { color: var(--accent); }
 .strip-scroll::-webkit-scrollbar { height: 4px; }
 .strip-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
+.tab-strip { --strip-tint: 15%; }
+.tab-strip.tint-strong { --strip-tint: 26%; }
+.tab-strip.tint-none { --strip-tint: 0%; }
 .strip-group {
   display: flex; align-items: center; gap: 2px; padding: 3px; flex-shrink: 0; border-radius: 11px;
-  background: color-mix(in srgb, var(--group-color) 15%, transparent);
+  background: color-mix(in srgb, var(--group-color) var(--strip-tint), transparent);
   border: 1px solid color-mix(in srgb, var(--group-color) 50%, transparent);
 }
 .strip-group.drag-over, .strip-loose.drag-over {
@@ -767,3 +770,27 @@ button.star.on { color: var(--accent); }
   display: flex; align-items: center; gap: 10px; justify-content: space-between; padding: 8px 10px;
   background: var(--bg); border: 1px solid var(--accent); border-radius: 6px; font-size: 12px;
 }
+
+/* ---------- tinted group cards ----------
+   Each group is a card in a thin wash of its colour; the solid colour stays in
+   the left bar and the dot. The catch-all group stays neutral. */
+.sidebar.tint-subtle { --g-bg: 6%; --g-head: 11%; --g-border: 16%; --g-hover: 12%; --g-active: 18%; }
+.sidebar.tint-strong { --g-bg: 12%; --g-head: 20%; --g-border: 28%; --g-hover: 20%; --g-active: 28%; }
+.sidebar:not(.tint-none) .group { margin: 5px 6px; padding: 0 0 3px; border-radius: 8px; }
+.sidebar:not(.tint-none) .group:not(.fixed) {
+  background: color-mix(in srgb, var(--group-color) var(--g-bg), var(--panel));
+  border: 1px solid color-mix(in srgb, var(--group-color) var(--g-border), var(--panel));
+  border-left: 3px solid var(--group-color);
+}
+.sidebar:not(.tint-none) .group.fixed { border: 1px solid var(--border); border-left-width: 3px; }
+.sidebar:not(.tint-none) .group:not(.fixed) > .group-header {
+  background: color-mix(in srgb, var(--group-color) var(--g-head), var(--panel));
+  border-radius: 6px 7px 0 0; margin-bottom: 2px;
+}
+.sidebar:not(.tint-none) .group:not(.fixed) .tab-row:hover {
+  background: color-mix(in srgb, var(--group-color) var(--g-hover), var(--panel));
+}
+.sidebar:not(.tint-none) .group:not(.fixed) .tab-row.active {
+  background: color-mix(in srgb, var(--group-color) var(--g-active), var(--panel));
+}
+.sidebar:not(.tint-none) .group.drag-over { outline: 1px solid var(--group-color); outline-offset: 1px; }

@@ -26,6 +26,7 @@ import {
   type RateLimits,
   type SplitMode,
   type TitleWrap,
+  type GroupTint,
   type StatusEnvelope,
   type StatusPayload,
   type Tab,
@@ -104,6 +105,8 @@ interface Store {
   terminalBorder: number;
   /** Whether long tab names in the sidebar wrap or get cut with an ellipsis. */
   tabTitleWrap: TitleWrap;
+  /** Background tint of each group in the tab list. */
+  groupTint: GroupTint;
   /** How the terminal area is divided. */
   splitMode: SplitMode;
   /** Tab shown in each pane, by slot. */
@@ -175,6 +178,7 @@ interface Store {
   closeGroup: (id: string) => void;
   setTerminalBorder: (px: number) => void;
   setTabTitleWrap: (w: TitleWrap) => void;
+  setGroupTint: (t: GroupTint) => void;
   setSplitMode: (m: SplitMode) => void;
   focusPane: (index: number) => void;
   openTabMenu: (m: { x: number; y: number; tabId: string } | null) => void;
@@ -209,6 +213,7 @@ export const useStore = create<Store>()(
       barPosition: "top",
       terminalBorder: 1,
       tabTitleWrap: "wrap",
+      groupTint: "subtle",
       splitMode: "single",
       panes: [null, null, null, null],
       focusedPane: 0,
@@ -487,6 +492,7 @@ export const useStore = create<Store>()(
         }),
       setTerminalBorder: (terminalBorder) => set({ terminalBorder }),
       setTabTitleWrap: (tabTitleWrap) => set({ tabTitleWrap }),
+      setGroupTint: (groupTint) => set({ groupTint }),
       setSplitMode: (splitMode) =>
         set((s) => {
           // Fill any pane the new layout exposes with a tab not already shown.
@@ -577,6 +583,7 @@ export const useStore = create<Store>()(
         barPosition: s.barPosition,
         terminalBorder: s.terminalBorder,
         tabTitleWrap: s.tabTitleWrap,
+        groupTint: s.groupTint,
         prompts: s.prompts,
         splitMode: s.splitMode,
         panes: s.panes,
