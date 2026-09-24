@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Claude Terminal",
+  "productName": "Shellhive",
   "version": "0.1.13",
   "identifier": "com.davidgoncalves.claude-terminal",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Claude Terminal",
+        "title": "Shellhive",
         "width": 1280,
         "height": 800,
         "dragDropEnabled": false
@@ -45,7 +45,9 @@
         "depends": [
           "libwebkit2gtk-4.1-0",
           "libgtk-3-0"
-        ]
+        ],
+        "conflicts": ["claude-terminal"],
+        "replaces": ["claude-terminal"]
       }
     },
     "createUpdaterArtifacts": true
@@ -55,7 +57,7 @@
       "active": true,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDIyNzVCRjAxQUUxRDI5RDkKUldUWktSMnVBYjkxSW51UXlsNHE2WFFWS2huV21aTFdlY3dNdlJ6U3BTWHpFZlVidVJrejQ4NDMK",
       "endpoints": [
-        "https://github.com/davidsgoncalves/claude-terminal/releases/latest/download/latest.json"
+        "https://github.com/davidsgoncalves/shellhive/releases/latest/download/latest.json"
       ],
       "windows": {
         "installMode": "passive"

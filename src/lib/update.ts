@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 
-export const RELEASES_URL = "https://github.com/davidsgoncalves/claude-terminal/releases";
+export const RELEASES_URL = "https://github.com/davidsgoncalves/shellhive/releases";
 
 /** How this build was installed, which decides how it can update itself. */
 export async function installKind(): Promise<string> {

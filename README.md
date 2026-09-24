@@ -1,4 +1,6 @@
-# Claude Terminal
+# Shellhive
+
+Antes chamado Claude Terminal.
 
 Terminal com abas agrupadas por assunto, feito para quem roda várias sessões do
 Claude Code ao mesmo tempo. Cada aba mostra em que estado está a sessão, os
@@ -45,12 +47,17 @@ O app verifica atualizações ao abrir e a cada seis horas. No macOS e no
 AppImage ele instala sozinho depois da sua confirmação. Instalado pelo `.deb`,
 ele baixa o pacote novo e entrega ao instalador do sistema, que pede sua senha.
 
+Quem instalou o Claude Terminal pelo `.deb` até a versão 0.1.12 precisa baixar e
+instalar o `.deb` do Shellhive uma vez à mão, porque essas versões não
+conseguiam buscar atualizações. O pacote novo substitui o antigo sozinho, e
+daí em diante as atualizações chegam pelo app.
+
 O build não é assinado por uma conta de desenvolvedor da Apple, então o macOS
 marca o download com o atributo de quarentena. Se o sistema disser que o app
 está danificado, remova a marca e abra normalmente:
 
 ```bash
-xattr -dr com.apple.quarantine "/Applications/Claude Terminal.app"
+xattr -dr com.apple.quarantine "/Applications/Shellhive.app"
 ```
 
 ## Como ele conversa com o Claude Code
@@ -101,7 +108,8 @@ externo.
 ## Onde ficam os dados
 
 Tudo em `~/Library/Application Support/claude-terminal` no macOS, ou
-`~/.config/claude-terminal` no Linux:
+`~/.config/claude-terminal` no Linux. As pastas mantêm o nome antigo para as
+instalações anteriores continuarem com suas abas e configurações:
 
 | Arquivo | Conteúdo |
 | --- | --- |

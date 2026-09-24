@@ -10,7 +10,7 @@ if (!tag || !repo) {
   process.exit(1);
 }
 const version = tag.replace(/^v/, "");
-const base = `Claude-Terminal_${version}`;
+const base = `Shellhive_${version}`;
 
 const gh = (args) => execFileSync("gh", args, { encoding: "utf8" });
 
@@ -26,12 +26,13 @@ const RULES = [
 
 const release = JSON.parse(gh(["api", `repos/${repo}/releases/tags/${tag}`]));
 for (const asset of release.assets) {
-  if (asset.name.startsWith(base)) continue;
   const sig = asset.name.endsWith(".sig");
   const plain = sig ? asset.name.slice(0, -4) : asset.name;
   const rule = RULES.find((r) => r.match.test(plain));
   if (!rule) continue;
   const name = sig ? `${rule.name}.sig` : rule.name;
+  // tauri-action already starts names with the product and version.
+  if (asset.name === name) continue;
   gh(["api", "-X", "PATCH", `repos/${repo}/releases/assets/${asset.id}`, "-f", `name=${name}`]);
   console.log(`${asset.name} -> ${name}`);
 }
