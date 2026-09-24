@@ -6,7 +6,7 @@ import { shortcutLabel } from "../lib/shortcuts";
 
 /** Vite sets this only on the dev server, so a packaged build never shows it. */
 const IS_DEV = import.meta.env.DEV;
-const APP_NAME = IS_DEV ? "Claude Terminal - dev" : "Claude Terminal";
+const APP_NAME = IS_DEV ? "Shellhive - dev" : "Shellhive";
 
 function useNow(intervalMs = 30_000) {
   const [now, setNow] = useState(() => Date.now());

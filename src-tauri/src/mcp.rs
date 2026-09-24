@@ -92,7 +92,7 @@ fn tool_definitions() -> serde_json::Value {
     serde_json::json!([
         {
             "name": "open_editor",
-            "description": "Abre um editor em um painel dentro do Claude Terminal, logo abaixo do terminal, para o \
+            "description": "Abre um editor em um painel dentro do Shellhive, logo abaixo do terminal, para o \
     usuário preencher, revisar ou colar algo, e devolve o conteúdo final. Use sempre que precisar que o usuário escreva \
     ou edite conteúdo, em vez de pedir para ele abrir um editor externo como VSCode. Suporta texto puro, CSV em planilha \
     editável, e JSON e XML com validação. Se `path` for informado, o arquivo é carregado e salvo com o que o usuário escrever.",

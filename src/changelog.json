@@ -3,7 +3,9 @@
     "version": "0.1.13",
     "date": "2026-09-24",
     "items": [
-      "Instalações pelo .deb voltam a encontrar e instalar atualizações, agora com a assinatura do pacote conferida."
+      "O Claude Terminal agora se chama Shellhive, com ícone novo. Abas, grupos e configurações continuam onde estavam.",
+      "Instalações pelo .deb voltam a encontrar e instalar atualizações, agora com a assinatura do pacote conferida.",
+      "No Linux, o pacote shellhive substitui o claude-terminal ao ser instalado."
     ]
   },
   {

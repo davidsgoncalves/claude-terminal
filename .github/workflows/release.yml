@@ -99,7 +99,7 @@ jobs:
           APPLE_SIGNING_IDENTITY: ${{ startsWith(matrix.platform, 'macos') && '-' || '' }}
         with:
           tagName: v${{ needs.decide.outputs.version }}
-          releaseName: "Claude Terminal v${{ needs.decide.outputs.version }}"
+          releaseName: "Shellhive v${{ needs.decide.outputs.version }}"
           releaseBody: |
             Qual arquivo baixar:
             - Mac com chip Apple (M1 ou mais novo): `macOS-Apple-Silicon.dmg`

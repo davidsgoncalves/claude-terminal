@@ -98,6 +98,6 @@ pub fn permission_decide(
     state.decide(
         &id,
         decision,
-        reason.unwrap_or_else(|| "Decidido no Claude Terminal".into()),
+        reason.unwrap_or_else(|| "Decidido no Shellhive".into()),
     )
 }
