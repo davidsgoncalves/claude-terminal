@@ -1,5 +1,8 @@
 use std::process::Command;
 
+use tauri::{AppHandle, Emitter};
+use tauri_plugin_updater::UpdaterExt;
+
 /// How this build was installed, which decides how it can update itself.
 #[tauri::command]
 pub fn install_kind() -> String {
@@ -28,12 +31,67 @@ fn run(program: &str, args: &[&str]) -> Result<(), String> {
     })
 }
 
+/// Entry of the .deb build in the updater manifest.
+const DEB_TARGET: &str = "linux-x86_64-deb";
+
+/// Looks up the .deb entry of the manifest through the updater, which fetches
+/// from Rust: the webview cannot read release files, GitHub sends no CORS
+/// headers for them.
+async fn find_package_update(
+    app: &AppHandle,
+) -> Result<Option<tauri_plugin_updater::Update>, String> {
+    app.updater_builder()
+        .target(DEB_TARGET)
+        .build()
+        .map_err(|e| e.to_string())?
+        .check()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Version of a newer .deb, or None when this one is current.
+#[tauri::command]
+pub async fn package_update_check(app: AppHandle) -> Result<Option<String>, String> {
+    Ok(find_package_update(&app).await?.map(|u| u.version))
+}
+
+/// Downloads the newer .deb, checks its signature and installs it, reporting
+/// progress as `package-update-progress` in percent.
+#[tauri::command]
+pub async fn package_update_install(app: AppHandle) -> Result<String, String> {
+    let update = find_package_update(&app)
+        .await?
+        .ok_or("nenhuma atualização disponível")?;
+    let file_name = update
+        .download_url
+        .path_segments()
+        .and_then(|mut s| s.next_back())
+        .unwrap_or("update.deb")
+        .to_string();
+    let progress = app.clone();
+    let mut got: u64 = 0;
+    let bytes = update
+        .download(
+            move |chunk, total| {
+                got += chunk as u64;
+                if let Some(total) = total.filter(|t| *t > 0) {
+                    let _ = progress.emit("package-update-progress", got * 100 / total);
+                }
+            },
+            || {},
+        )
+        .await
+        .map_err(|e| format!("download falhou: {e}"))?;
+    tauri::async_runtime::spawn_blocking(move || install_package(file_name, bytes))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
 /// Writes the downloaded package to a temporary file and installs it.
 ///
 /// A package install needs root, so this asks the desktop for authorisation
 /// through polkit and falls back to handing the file to the system installer.
-#[tauri::command]
-pub fn install_package(file_name: String, bytes: Vec<u8>) -> Result<String, String> {
+fn install_package(file_name: String, bytes: Vec<u8>) -> Result<String, String> {
     if bytes.is_empty() {
         return Err("download vazio".into());
     }

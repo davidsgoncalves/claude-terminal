@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.1.13",
+    "date": "2026-09-24",
+    "items": [
+      "Instalações pelo .deb voltam a encontrar e instalar atualizações, agora com a assinatura do pacote conferida."
+    ]
+  },
+  {
     "version": "0.1.12",
     "date": "2026-09-24",
     "items": [
