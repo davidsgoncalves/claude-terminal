@@ -9,6 +9,7 @@ import { Modal } from "./Modal";
 import { AddFolder, FolderChoice } from "./FolderFields";
 import { BORDER_OPTIONS } from "../lib/types";
 import { QuickSwitcher } from "./QuickSwitcher";
+import changelog from "../changelog.json";
 import { PromptPicker } from "./PromptPicker";
 import type { PathCheck } from "../lib/types";
 
@@ -19,6 +20,15 @@ const INSTALL_LABEL: Record<string, string> = {
 };
 
 /** Version, how it was installed, and a manual check for a newer release. */
+interface ChangelogEntry {
+  version: string;
+  date: string;
+  items: string[];
+}
+
+/** Written by hand for each release; `pnpm bump` adds the empty entry. */
+const CHANGELOG = changelog as ChangelogEntry[];
+
 function AboutTab() {
   const [version, setVersion] = useState("…");
   const [kind, setKind] = useState("…");
@@ -46,6 +56,7 @@ function AboutTab() {
   };
 
   return (
+    <>
     <section className="settings-section">
       <h3>Versão</h3>
       <ul className="about-list">
@@ -68,6 +79,27 @@ function AboutTab() {
       </div>
       {status && <p className="hint">{status}</p>}
     </section>
+
+    <section className="settings-section">
+      <h3>Novidades</h3>
+      <ol className="changelog">
+        {CHANGELOG.map((entry) => (
+          <li key={entry.version}>
+            <div className="changelog-head">
+              <strong>{entry.version}</strong>
+              {entry.version === version && <span className="changelog-tag">instalada</span>}
+              <time>{new Date(`${entry.date}T12:00:00`).toLocaleDateString()}</time>
+            </div>
+            <ul>
+              {entry.items.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ol>
+    </section>
+    </>
   );
 }
 

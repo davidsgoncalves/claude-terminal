@@ -20,4 +20,14 @@ for (const file of FILES) {
   json.version = next;
   writeFileSync(file, `${JSON.stringify(json, null, 2)}\n`);
 }
+// The changelog is written by hand; make sure the new version has an entry.
+const CHANGELOG = "src/changelog.json";
+const log = JSON.parse(readFileSync(CHANGELOG, "utf8"));
+const today = new Date().toISOString().slice(0, 10);
+const entry = log.find((e) => e.version === next);
+if (entry) entry.date = today;
+else log.unshift({ version: next, date: today, items: [] });
+writeFileSync(CHANGELOG, `${JSON.stringify(log, null, 2)}\n`);
+
 console.log(`${current} -> ${next}`);
+if (!entry?.items.length) console.warn(`${CHANGELOG}: write what changed in ${next} before merging`);
