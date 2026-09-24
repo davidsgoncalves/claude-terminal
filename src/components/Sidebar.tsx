@@ -77,9 +77,10 @@ function TabRow({ tab, active }: { tab: Tab; active: boolean }) {
   const isDetached = useStore((s) => s.detached.includes(tab.id));
   const status = useStore((s) => s.statusByTab[tab.id]);
   const stale = useStore((s) => s.alerted.includes(tab.id));
+  const wrap = useStore((s) => s.tabTitleWrap === "wrap");
   return (
     <li
-      className={`tab-row state-${tab.state} ${active ? "active" : ""} ${stale ? "stale" : ""}`}
+      className={`tab-row state-${tab.state} ${active ? "active" : ""} ${stale ? "stale" : ""} ${wrap ? "wrap" : ""}`}
       draggable
       onDragStart={(e) => e.dataTransfer.setData("text/tab-id", tab.id)}
       onDragEnd={(e) => {

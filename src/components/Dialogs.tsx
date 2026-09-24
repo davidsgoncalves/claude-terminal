@@ -82,6 +82,8 @@ function SettingsDialog({ onClose }: { onClose: () => void }) {
     setBarPosition,
     terminalBorder,
     setTerminalBorder,
+    tabTitleWrap,
+    setTabTitleWrap,
   } = useStore();
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -113,6 +115,24 @@ function SettingsDialog({ onClose }: { onClose: () => void }) {
           </button>
           <button className={`chip ${layout === "topbar" ? "on" : ""}`} onClick={() => setLayout("topbar")}>
             Superior
+          </button>
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <h3>Nomes longos na lista lateral</h3>
+        <div className="chip-row">
+          <button
+            className={`chip ${tabTitleWrap === "wrap" ? "on" : ""}`}
+            onClick={() => setTabTitleWrap("wrap")}
+          >
+            Quebrar em linhas
+          </button>
+          <button
+            className={`chip ${tabTitleWrap === "truncate" ? "on" : ""}`}
+            onClick={() => setTabTitleWrap("truncate")}
+          >
+            Cortar com …
           </button>
         </div>
       </section>
