@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import type { Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { findUpdate } from "./update";
@@ -8,7 +9,6 @@ export type Phase = "idle" | "found" | "working" | "ready" | "handed-off" | "res
 
 interface PackageUpdate {
   version: string;
-  url: string;
 }
 
 interface Updater {
@@ -50,7 +50,7 @@ export const useUpdater = create<Updater>()((set, get) => ({
     const found = await findUpdate();
     if (!found) return null;
     if (found.kind === "native") set({ update: found.update, pkg: null, phase: "found", dismissed: false });
-    else set({ pkg: { version: found.version, url: found.url }, update: null, phase: "found", dismissed: false });
+    else set({ pkg: { version: found.version }, update: null, phase: "found", dismissed: false });
     return found.version;
   },
 
@@ -72,30 +72,14 @@ export const useUpdater = create<Updater>()((set, get) => ({
         return;
       }
       if (!pkg) return;
-      const response = await fetch(pkg.url);
-      if (!response.ok) throw new Error(`download falhou (${response.status})`);
-      const total = Number(response.headers.get("content-length") ?? 0);
-      const reader = response.body?.getReader();
-      const chunks: Uint8Array[] = [];
-      let got = 0;
-      while (reader) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-        got += value.length;
-        if (total > 0) set({ progress: Math.round((got / total) * 100) });
+      // Downloaded and verified by the backend; the webview cannot fetch it.
+      const unlisten = await listen<number>("package-update-progress", (ev) => set({ progress: ev.payload }));
+      try {
+        const result = await invoke<string>("package_update_install");
+        set({ phase: result === "installed" ? "ready" : "handed-off" });
+      } finally {
+        unlisten();
       }
-      const bytes = new Uint8Array(got);
-      let offset = 0;
-      for (const chunk of chunks) {
-        bytes.set(chunk, offset);
-        offset += chunk.length;
-      }
-      const result = await invoke<string>("install_package", {
-        fileName: pkg.url.split("/").pop() ?? "update.deb",
-        bytes: Array.from(bytes),
-      });
-      set({ phase: result === "installed" ? "ready" : "handed-off" });
     } catch (err) {
       set({ phase: "error", message: errorText(err) });
     }
