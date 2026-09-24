@@ -293,7 +293,7 @@ pub fn write_scripts() -> Result<HookSetup, String> {
         &forward_sh,
         format!(
             "#!/bin/sh\n\
-             # Forwards a Claude Code hook payload (JSON on stdin) to claude-terminal.\n\
+             # Forwards a Claude Code hook payload (JSON on stdin) to Shellhive.\n\
              # Always exits 0 so a missing app never blocks Claude Code.\n\
              curl -s --max-time 2 -X POST \\\n\
              \x20 -H \"Content-Type: application/json\" \\\n\
@@ -311,7 +311,7 @@ pub fn write_scripts() -> Result<HookSetup, String> {
         &permission_sh,
         format!(
             "#!/bin/sh\n\
-             # Asks claude-terminal to decide a permission request.\n\
+             # Asks Shellhive to decide a permission request.\n\
              out=$(curl -s --max-time {curl_timeout} -X POST \\\n\
              \x20 -H \"Content-Type: application/json\" \\\n\
              \x20 -H \"X-Tab-Id: ${{CLAUDE_TERMINAL_TAB_ID:-}}\" \\\n\
@@ -335,7 +335,7 @@ pub fn write_scripts() -> Result<HookSetup, String> {
              \x20 -H \"X-Tab-Id: ${{CLAUDE_TERMINAL_TAB_ID:-}}\" \\\n\
              \x20 --data-binary @- \"http://127.0.0.1:{PORT}/hook\" >/dev/null 2>&1 || true\n\
              cat <<'JSON'\n\
-             {{\"hookSpecificOutput\":{{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Voce esta rodando dentro do Shellhive, um terminal com abas agrupadas feito para o Claude Code. Ele expoe o servidor MCP 'claude-terminal'. Use a ferramenta open_editor sempre que precisar que o usuario escreva, preencha ou revise um texto: ela abre um editor em painel logo abaixo do terminal e devolve o texto final, e salva o arquivo quando voce passa 'path'. Prefira open_editor a pedir para o usuario abrir VSCode ou outro editor externo. Quando precisar que o usuario rode um comando de shell ele mesmo, chame suggest_command em vez de pedir para ele digitar ! comando: o comando vira um botao que roda nesta sessao.\"}}}}\n\
+             {{\"hookSpecificOutput\":{{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Voce esta rodando dentro do Shellhive, um terminal com abas agrupadas feito para o Claude Code. Ele expoe o servidor MCP 'shellhive'. Use a ferramenta open_editor sempre que precisar que o usuario escreva, preencha ou revise um texto: ela abre um editor em painel logo abaixo do terminal e devolve o texto final, e salva o arquivo quando voce passa 'path'. Prefira open_editor a pedir para o usuario abrir VSCode ou outro editor externo. Quando precisar que o usuario rode um comando de shell ele mesmo, chame suggest_command em vez de pedir para ele digitar ! comando: o comando vira um botao que roda nesta sessao.\"}}}}\n\
              JSON\n\
              exit 0\n"
         ),
@@ -348,7 +348,7 @@ pub fn write_scripts() -> Result<HookSetup, String> {
         &statusline_sh,
         format!(
             "#!/bin/sh\n\
-             # Mirrors Claude Code statusline JSON to claude-terminal, then runs the\n\
+             # Mirrors Claude Code statusline JSON to Shellhive, then runs the\n\
              # user's original statusline command (captured when this file was written).\n\
              input=$(cat)\n\
              printf '%s' \"$input\" | curl -s --max-time 2 -X POST \\\n\
@@ -396,9 +396,9 @@ pub fn write_scripts() -> Result<HookSetup, String> {
         // do not need a prompt of their own.
         "permissions": {
             "allow": [
-                "mcp__claude-terminal__open_editor",
-                "mcp__claude-terminal__list_sessions",
-                "mcp__claude-terminal__suggest_command"
+                "mcp__shellhive__open_editor",
+                "mcp__shellhive__list_sessions",
+                "mcp__shellhive__suggest_command"
             ]
         },
         "hooks": hooks,
@@ -422,7 +422,7 @@ pub fn write_scripts() -> Result<HookSetup, String> {
         &mcp_json,
         serde_json::to_string_pretty(&serde_json::json!({
             "mcpServers": {
-                "claude-terminal": { "type": "http", "url": format!("http://127.0.0.1:{PORT}/mcp") }
+                "shellhive": { "type": "http", "url": format!("http://127.0.0.1:{PORT}/mcp") }
             }
         }))
         .unwrap(),

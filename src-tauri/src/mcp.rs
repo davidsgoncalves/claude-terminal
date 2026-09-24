@@ -357,7 +357,7 @@ pub fn handle_rpc(
                 .and_then(|v| v.as_str())
                 .unwrap_or(PROTOCOL_VERSION),
             "capabilities": { "tools": {} },
-            "serverInfo": { "name": "claude-terminal", "version": env!("CARGO_PKG_VERSION") }
+            "serverInfo": { "name": "shellhive", "version": env!("CARGO_PKG_VERSION") }
         }),
         "ping" => serde_json::json!({}),
         "tools/list" => serde_json::json!({ "tools": tool_definitions() }),
