@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.1.14",
+    "date": "2026-09-24",
+    "items": [
+      "O logo do Shellhive aparece ao lado do nome na barra de limites.",
+      "O pacote .deb informa o nome de quem o mantém."
+    ]
+  },
+  {
     "version": "0.1.13",
     "date": "2026-09-24",
     "items": [
