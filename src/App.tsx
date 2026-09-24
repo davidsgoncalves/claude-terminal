@@ -477,6 +477,7 @@ function App() {
                   rect={paneRect(splitMode, slot === -1 ? 0 : slot)}
                   color={colorOf(t)}
                   onFocus={() => slot !== -1 && focusPane(slot)}
+                  onDropTab={(id) => slot !== -1 && id !== t.id && useStore.getState().assignToPane(id, slot)}
                   onContextMenu={(e) => {
                     e.preventDefault();
                     useStore.getState().openTabMenu({ x: e.clientX, y: e.clientY, tabId: t.id });

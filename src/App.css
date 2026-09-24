@@ -817,3 +817,9 @@ button.star.on { color: var(--accent); }
 .mini-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mini-agents { font-size: 10px; color: var(--c-working); flex-shrink: 0; }
 .mini-empty { color: var(--muted); font-size: 12px; text-align: center; margin-top: 24px; }
+
+/* A tab dragged from the list over a pane that would take it. */
+.term-pane.drop-target::after, .empty-pane.drop-target {
+  border-color: var(--accent) !important; background-color: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.empty-pane.drop-target { outline: 2px dashed var(--accent); outline-offset: -6px; }

@@ -90,6 +90,11 @@ export async function pasteDroppedFiles(tabId: string, data: DataTransfer): Prom
   await invoke("pty_write", { id: tabId, data: `\x1b[200~${text}\x1b[201~` });
 }
 
+/** True when a drag carries a tab from the tab list. */
+export function carriesTab(data: DataTransfer): boolean {
+  return [...data.types].includes("text/tab-id");
+}
+
 /** True when a drag carries files from outside the app, not a tab. */
 export function carriesFiles(data: DataTransfer): boolean {
   return [...data.types].includes("Files");

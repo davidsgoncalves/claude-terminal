@@ -48,6 +48,16 @@ interface ClosedTab {
   customTitle: boolean;
 }
 
+/** First visible pane with nothing running in it, if the split has one. */
+function freePane(s: Pick<Store, "panes" | "tabs" | "splitMode">): number | null {
+  for (let i = 0; i < paneCount(s.splitMode); i++) {
+    const id = s.panes[i];
+    const tab = id ? s.tabs.find((t) => t.id === id) : undefined;
+    if (!tab || tab.state === "dormant") return i;
+  }
+  return null;
+}
+
 function rememberClosed(list: ClosedTab[], tabs: Tab[]): ClosedTab[] {
   const added = tabs.map(({ groupId, cwd, claudeSessionId, title, customTitle }) => ({
     groupId,
@@ -319,8 +329,10 @@ export const useStore = create<Store>()(
         };
         set((s) => {
           const panes = [...s.panes];
-          panes[s.focusedPane] = id;
-          return { tabs: [...s.tabs, tab], activeTabId: id, panes };
+          // An empty pane takes the new tab before the focused one is replaced.
+          const target = freePane(s) ?? s.focusedPane;
+          panes[target] = id;
+          return { tabs: [...s.tabs, tab], activeTabId: id, panes, focusedPane: target };
         });
         return id;
       },
@@ -359,9 +371,11 @@ export const useStore = create<Store>()(
         if (previous?.state === "dormant" && previous.claudeSessionId) markPendingResume([id]);
         set((s) => {
           const panes = [...s.panes];
-          // A tab already on screen keeps its pane and takes focus there.
+          // A tab already on screen keeps its pane and takes focus there;
+          // otherwise an empty pane is used before the focused one is replaced.
           const existing = panes.indexOf(id);
-          const target = existing !== -1 && existing < paneCount(s.splitMode) ? existing : s.focusedPane;
+          const target =
+            existing !== -1 && existing < paneCount(s.splitMode) ? existing : (freePane(s) ?? s.focusedPane);
           panes[target] = id;
           return {
             activeTabId: id,
@@ -551,6 +565,8 @@ export const useStore = create<Store>()(
       assignToPane: (tabId, index) => {
         const previous = get().tabs.find((t) => t.id === tabId);
         if (previous?.state === "dormant" && previous.claudeSessionId) markPendingResume([tabId]);
+        // Placing a tab that lives in its own window brings it back first.
+        if (get().detached.includes(tabId)) closeDetachedWindow(tabId);
         set((s) => {
           const panes = [...s.panes];
           // A tab can only be in one pane; free the one it came from.
@@ -560,6 +576,7 @@ export const useStore = create<Store>()(
           return {
             panes,
             paneAssign: null,
+            detached: s.detached.filter((d) => d !== tabId),
             focusedPane: index,
             activeTabId: tabId,
             tabs: s.tabs.map((t) => (t.id === tabId && t.state === "dormant" ? { ...t, state: "shell" as TabState } : t)),
