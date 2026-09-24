@@ -4,6 +4,7 @@ import { getVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { installKind, RELEASES_URL } from "../lib/update";
 import { useUpdater } from "../lib/updater";
+import { shortcutLabel, withShortcuts } from "../lib/shortcuts";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useStore, type SettingsTab } from "../lib/store";
 import { Modal } from "./Modal";
@@ -117,7 +118,7 @@ function AboutTab() {
             </div>
             <ul>
               {entry.items.map((item) => (
-                <li key={item}>{item}</li>
+                <li key={item}>{withShortcuts(item)}</li>
               ))}
             </ul>
           </li>
@@ -144,7 +145,7 @@ function PromptsTab() {
     <>
       <section className="settings-section">
         <h3>Novo prompt</h3>
-        <p className="hint">⌘⇧P insere um destes na sessão ativa.</p>
+        <p className="hint">{shortcutLabel("prompts")} insere um destes na sessão ativa.</p>
         <input placeholder="Nome (opcional)" value={name} onChange={(e) => setName(e.target.value)} />
         <textarea
           className="prompt-text"

@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.1.12",
+    "date": "2026-09-24",
+    "items": [
+      "No Linux, os atalhos usam Ctrl+Shift, como nos outros terminais, no lugar da tecla Super. As abas trocam com Alt+1 a Alt+9 e Ctrl+PgUp/PgDn.",
+      "O changelog e as dicas mostram os atalhos do sistema em uso."
+    ]
+  },
+  {
     "version": "0.1.11",
     "date": "2026-09-24",
     "items": [
@@ -14,13 +22,13 @@
       "Arrastar uma aba para outro grupo voltou a funcionar.",
       "Uma aba pode ir para uma janela só dela, arrastando para fora ou pelo menu.",
       "Nomes longos na lista lateral quebram em linhas, com opção de cortar.",
-      "⌘P busca abas por nome, pasta, branch ou grupo.",
+      "{switcher} busca abas por nome, pasta, branch ou grupo.",
       "Cada aba mostra a branch e as linhas alteradas da pasta.",
       "Pedidos de permissão podem ser aprovados de vez para um grupo.",
-      "⌘⇧T reabre a última aba fechada.",
-      "Prompts salvos, inseridos com ⌘⇧P.",
-      "⌘-clique abre links e caminhos de arquivo impressos no terminal.",
-      "⌘F busca no histórico do terminal.",
+      "{reopenTab} reabre a última aba fechada.",
+      "Prompts salvos, inseridos com {prompts}.",
+      "{click} abre links e caminhos de arquivo impressos no terminal.",
+      "{search} busca no histórico do terminal.",
       "Soltar um arquivo no terminal cola o caminho dele.",
       "No Linux, o ç não se repete mais ao digitar com teclado ABNT.",
       "Changelog na aba Sobre.",

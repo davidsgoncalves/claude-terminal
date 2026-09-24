@@ -82,16 +82,21 @@ externo.
 
 ## Atalhos
 
-| Tecla | Ação |
-| --- | --- |
-| `⌘T` | Nova sessão |
-| `⌘W` | Fechar aba |
-| `⌘1` a `⌘9` | Trocar de aba |
-| `⌘⇧[` e `⌘⇧]` | Aba anterior e próxima |
-| `⌘B` | Mostrar ou esconder a lista de sessões |
-| `⌘E` | Mostrar ou esconder o painel da direita |
-| `⌘K` | Limpar a tela do terminal |
-| `⌘,` | Configurações |
+| Ação | macOS | Linux |
+| --- | --- | --- |
+| Nova sessão | `⌘T` | `Ctrl+Shift+T` |
+| Fechar aba | `⌘W` | `Ctrl+Shift+W` |
+| Reabrir a última aba fechada | `⌘⇧T` | `Ctrl+Shift+R` |
+| Trocar de aba | `⌘1` a `⌘9` | `Alt+1` a `Alt+9` |
+| Aba anterior e próxima | `⌘⇧[` e `⌘⇧]` | `Ctrl+PgUp` e `Ctrl+PgDn` |
+| Buscar abas | `⌘P` | `Ctrl+Shift+P` |
+| Prompts salvos | `⌘⇧P` | `Ctrl+Shift+O` |
+| Buscar no terminal | `⌘F` | `Ctrl+Shift+F` |
+| Abrir link ou arquivo | `⌘`-clique | `Ctrl`-clique |
+| Mostrar ou esconder a lista de sessões | `⌘B` | `Ctrl+Shift+B` |
+| Mostrar ou esconder o painel da direita | `⌘E` | `Ctrl+Shift+E` |
+| Limpar a tela do terminal | `⌘K` | `Ctrl+Shift+K` |
+| Configurações | `⌘,` | `Ctrl+Shift+,` |
 
 ## Onde ficam os dados
 

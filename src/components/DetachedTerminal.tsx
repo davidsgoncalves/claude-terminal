@@ -5,6 +5,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { decodeBase64, TERMINAL_OPTIONS } from "../lib/terminals";
+import { actionOf, shortcutLabel } from "../lib/shortcuts";
 import { attachLinks, carriesFiles, fixLinuxInput, pasteDroppedFiles } from "../lib/termExtras";
 import {
   DETACH_CLOSED,
@@ -70,13 +71,13 @@ export function DetachedTerminal({ tabId }: { tabId: string }) {
     void unSnap.then(() => emitTo(MAIN_LABEL, DETACH_READY, { id: tabId }));
 
     term.attachCustomKeyEventHandler((e) => {
-      if (e.type !== "keydown" || !e.metaKey) return true;
-      const key = e.key.toLowerCase();
-      if (key === "k" && !e.shiftKey) {
+      if (e.type !== "keydown") return true;
+      const action = actionOf(e);
+      if (action === "clear") {
         term.clear();
         return false;
       }
-      if (key === "w" && !e.shiftKey) {
+      if (action === "closeTab") {
         void win.close();
         return false;
       }
@@ -116,7 +117,7 @@ export function DetachedTerminal({ tabId }: { tabId: string }) {
         >
           ⠿ {title}
         </span>
-        <button className="detached-back" onClick={backToMain} title="Voltar para a janela principal (⌘W)">
+        <button className="detached-back" onClick={backToMain} title={`Voltar para a janela principal (${shortcutLabel("closeTab")})`}>
           Voltar para a principal
         </button>
       </header>

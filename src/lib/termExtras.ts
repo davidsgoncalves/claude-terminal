@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { IDisposable, Terminal } from "@xterm/xterm";
 import { WebLinksAddon } from "@xterm/addon-web-links";
+import { primaryMod } from "./shortcuts";
 
 /** Paths with a folder part or a `:line` suffix, as Claude prints them. */
 const PATH_RE = /(?:~|\.{1,2})?\/?[\w.@-]+(?:\/[\w.@-]+)+(?::\d+){0,2}|[\w.@-]+\.[A-Za-z]\w{0,5}:\d+(?::\d+)?/g;
@@ -10,15 +11,15 @@ function open(target: string, cwd: string | null): void {
 }
 
 /**
- * Cmd+click opens web URLs, OSC 8 links (which Claude Code prints for files)
+ * Cmd+click (Ctrl+click on Linux) opens web URLs, OSC 8 links (which Claude Code prints for files)
  * and plain file paths that exist, relative paths resolved from the tab's folder.
  */
 export function attachLinks(term: Terminal, getCwd: () => string | null): IDisposable {
   term.options.linkHandler = {
     allowNonHttpProtocols: true,
-    activate: (e, text) => e.metaKey && open(text, getCwd()),
+    activate: (e, text) => primaryMod(e) && open(text, getCwd()),
   };
-  const web = new WebLinksAddon((e, uri) => e.metaKey && open(uri, getCwd()));
+  const web = new WebLinksAddon((e, uri) => primaryMod(e) && open(uri, getCwd()));
   term.loadAddon(web);
 
   const known = new Map<string, boolean>();
@@ -44,7 +45,7 @@ export function attachLinks(term: Terminal, getCwd: () => string | null): IDispo
             text: m[0],
             range: { start: { x: m.index + 1, y }, end: { x: m.index + m[0].length, y } },
             decorations: { underline: true, pointerCursor: true },
-            activate: (e: MouseEvent, text: string) => e.metaKey && open(text, getCwd()),
+            activate: (e: MouseEvent, text: string) => primaryMod(e) && open(text, getCwd()),
           }));
         callback(links.length ? links : undefined);
       });

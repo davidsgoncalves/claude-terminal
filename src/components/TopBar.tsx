@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useStore } from "../lib/store";
 import { SPLIT_MODES, type RateWindow, type TabState } from "../lib/types";
+import { shortcutLabel } from "../lib/shortcuts";
 
 /** Vite sets this only on the dev server, so a packaged build never shows it. */
 const IS_DEV = import.meta.env.DEV;
@@ -123,7 +124,7 @@ export function TopBar() {
         )}
       </div>
 
-      <button className="icon-btn" title="Configurações (⌘,)" onClick={() => openModal({ kind: "settings" })}>
+      <button className="icon-btn" title={`Configurações (${shortcutLabel("settings")})`} onClick={() => openModal({ kind: "settings" })}>
         ⚙
       </button>
     </header>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ISearchOptions } from "@xterm/addon-search";
 import { searches, terminals } from "../lib/terminals";
+import { IS_MAC } from "../lib/shortcuts";
 
 const OPTIONS: ISearchOptions = {
   decorations: {
@@ -83,7 +84,7 @@ export function TerminalSearch({ tabId, rect, onClose }: Props) {
       >
         Aa
       </button>
-      <button className="icon-btn" title="Anterior (⇧Enter)" onClick={() => step(true)}>
+      <button className="icon-btn" title={`Anterior (${IS_MAC ? "⇧Enter" : "Shift+Enter"})`} onClick={() => step(true)}>
         ↑
       </button>
       <button className="icon-btn" title="Próximo (Enter)" onClick={() => step(false)}>

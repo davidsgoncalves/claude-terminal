@@ -5,6 +5,7 @@ import { FitAddon } from "@xterm/addon-fit";
 import { SerializeAddon } from "@xterm/addon-serialize";
 import { SearchAddon } from "@xterm/addon-search";
 import { searches, serializers, terminals, TERMINAL_OPTIONS } from "../lib/terminals";
+import { actionOf, isAppShortcut } from "../lib/shortcuts";
 import { attachLinks, carriesFiles, fixLinuxInput, pasteDroppedFiles } from "../lib/termExtras";
 import { takePendingResume } from "../lib/restored";
 import type { Tab } from "../lib/types";
@@ -21,9 +22,6 @@ interface Props {
   onFocus: () => void;
   onContextMenu: (e: React.MouseEvent) => void;
 }
-
-/** Cmd shortcuts the app owns; xterm ignores them so they bubble up to the window handler. */
-const APP_SHORTCUTS = new Set(["t", "w", "p", "f", "b", "e", "1", "2", "3", "4", "5", "6", "7", "8", "9", "[", "]"]);
 
 export function TerminalView({ tab, visible, focused, rect, color, onFocus, onContextMenu }: Props) {
   const ref = useRef<HTMLDivElement>(null);
@@ -49,14 +47,13 @@ export function TerminalView({ tab, visible, focused, rect, color, onFocus, onCo
     fit.fit();
 
     term.attachCustomKeyEventHandler((e) => {
-      if (e.type !== "keydown" || !e.metaKey) return true;
-      const key = e.key.toLowerCase();
-      if (key === "k" && !e.shiftKey) {
+      if (e.type !== "keydown") return true;
+      if (actionOf(e) === "clear") {
         term.clear();
         return false;
       }
-      if (APP_SHORTCUTS.has(key)) return false;
-      return true;
+      // App shortcuts bubble up to the window handler instead of reaching the shell.
+      return !isAppShortcut(e);
     });
 
     terminals.set(tab.id, term);
