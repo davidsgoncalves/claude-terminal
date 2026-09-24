@@ -82,15 +82,30 @@ fn json_response(value: &serde_json::Value) -> Response<std::io::Cursor<Vec<u8>>
     Response::from_data(body).with_header(header)
 }
 
+/// How often the server retries a port another process is holding.
+const BIND_RETRY: std::time::Duration = std::time::Duration::from_secs(3);
+
 pub fn start_server(app: AppHandle) {
     thread::spawn(move || {
-        let server = match Server::http(("127.0.0.1", PORT)) {
-            Ok(s) => s,
-            Err(e) => {
-                eprintln!("hook server failed to bind port {PORT}: {e}");
-                return;
+        // Another copy of the app (or an older one still open) may hold the
+        // port. Giving up would leave hooks, permissions and the editor dead
+        // until a restart, so keep trying until it is free.
+        let mut warned = false;
+        let server = loop {
+            match Server::http(("127.0.0.1", PORT)) {
+                Ok(s) => break s,
+                Err(e) => {
+                    if !warned {
+                        eprintln!("hook server cannot bind port {PORT} yet: {e}; retrying");
+                        warned = true;
+                    }
+                    thread::sleep(BIND_RETRY);
+                }
             }
         };
+        if warned {
+            eprintln!("hook server bound port {PORT}");
+        }
         for request in server.incoming_requests() {
             let app = app.clone();
             // One thread per request: a blocking permission must not stall the rest.
