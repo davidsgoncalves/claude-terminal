@@ -823,3 +823,4 @@ button.star.on { color: var(--accent); }
   border-color: var(--accent) !important; background-color: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 .empty-pane.drop-target { outline: 2px dashed var(--accent); outline-offset: -6px; }
+.perm-item.command { border-left-color: var(--accent); }

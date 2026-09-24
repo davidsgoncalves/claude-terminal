@@ -126,6 +126,22 @@ fn tool_definitions() -> serde_json::Value {
             }
         },
         {
+            "name": "suggest_command",
+            "description": "Mostra ao usuário um comando de shell como um botão na fila do Shellhive. Ao clicar em \
+    Executar, o comando roda nesta sessão como se o usuário tivesse digitado `! comando`, e a saída chega nesta conversa. \
+    Use sempre que for pedir para o usuário rodar algo ele mesmo (login interativo, comando que exige a senha dele, \
+    algo que você não deve rodar sozinho), em vez de escrever \"digite ! comando\". Não espera a execução.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "command": { "type": "string", "description": "Comando exato a executar, sem o ! na frente." },
+                    "reason": { "type": "string", "description": "Uma frase curta dizendo por que o usuário deve rodar isso." }
+                },
+                "required": ["command"],
+                "additionalProperties": false
+            }
+        },
+        {
             "name": "list_sessions",
             "description": "Lista as sessões do Claude Code gravadas nesta máquina, com título, pasta e data.",
             "inputSchema": {
@@ -242,6 +258,55 @@ fn call_open_editor(
     }
 }
 
+#[derive(Clone, serde::Serialize)]
+struct CommandSuggestion {
+    id: String,
+    tab_id: Option<String>,
+    command: String,
+    reason: Option<String>,
+}
+
+/// Shows a command as a button in the queue; nothing runs until the user clicks it.
+fn call_suggest_command(
+    app: &AppHandle,
+    tab_id: Option<String>,
+    args: &serde_json::Value,
+) -> serde_json::Value {
+    let command = args
+        .get("command")
+        .and_then(|v| v.as_str())
+        .map(|c| c.trim().trim_start_matches('!').trim().to_string())
+        .unwrap_or_default();
+    if command.is_empty() {
+        return text_result("Informe o comando em `command`.".into(), true);
+    }
+    if tab_id.is_none() {
+        return text_result(
+            "Esta sessão não está numa aba do Shellhive; peça ao usuário para rodar o comando."
+                .into(),
+            true,
+        );
+    }
+    let _ = app.emit(
+        "command-suggestion",
+        CommandSuggestion {
+            id: format!("cmd-{}", crate::hooks::next_public_id()),
+            tab_id,
+            command,
+            reason: args
+                .get("reason")
+                .and_then(|v| v.as_str())
+                .map(str::to_string),
+        },
+    );
+    text_result(
+        "O comando apareceu como botão na fila do Shellhive. Se o usuário executar, a saída chega nesta \
+         conversa como uma mensagem dele. Não repita o comando no texto; diga só o que ele faz."
+            .into(),
+        false,
+    )
+}
+
 fn call_list_sessions(app: &AppHandle, args: &serde_json::Value) -> serde_json::Value {
     let limit = args.get("limit").and_then(|v| v.as_u64()).unwrap_or(20) as usize;
     let Some(db) = app.try_state::<crate::db::Db>() else {
@@ -306,6 +371,7 @@ pub fn handle_rpc(
             match name {
                 "open_editor" => call_open_editor(app, tab_id, &args),
                 "list_sessions" => call_list_sessions(app, &args),
+                "suggest_command" => call_suggest_command(app, tab_id, &args),
                 other => text_result(format!("Ferramenta desconhecida: {other}"), true),
             }
         }

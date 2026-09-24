@@ -82,6 +82,7 @@ Sessões abertas fora do app não são afetadas.
 | --- | --- |
 | `open_editor` | Abre o editor em painel e devolve o texto final. Salva o arquivo quando recebe um caminho. Detecta planilha, JSON e XML pela extensão |
 | `list_sessions` | Lista as sessões gravadas na máquina, com título e pasta |
+| `suggest_command` | Mostra um comando de shell como botão na fila. Ao clicar em Executar, ele roda na sessão como `! comando` |
 
 No início de cada sessão o Claude recebe um contexto dizendo que está rodando
 aqui dentro e que deve usar o editor em painel no lugar de pedir um editor

@@ -16,6 +16,7 @@ import {
   type GitInfo,
   type SavedPrompt,
   type Subagent,
+  type CommandSuggestion,
   type Group,
   type HookEvent,
   type HookSetup,
@@ -132,6 +133,8 @@ interface Store {
   focusedPane: number;
   /** Questions Claude is waiting on, shown next to the permissions. */
   questions: QuestionItem[];
+  /** Commands Claude asked the user to run, waiting in the queue. */
+  commands: CommandSuggestion[];
   /** Tabs whose terminal is shown in a window of its own. */
   detached: string[];
   /** Subagents running in each tab, not persisted. */
@@ -210,6 +213,8 @@ interface Store {
   startPaneAssign: (tabId: string | null) => void;
   assignToPane: (tabId: string, index: number) => void;
   addQuestion: (q: QuestionItem) => void;
+  addCommand: (c: CommandSuggestion) => void;
+  dropCommand: (id: string) => void;
   dropQuestion: (match: { id?: string; toolUseId?: string; tabId?: string }) => void;
 }
 
@@ -245,6 +250,7 @@ export const useStore = create<Store>()(
       panes: [null, null, null, null],
       focusedPane: 0,
       questions: [],
+      commands: [],
       detached: [],
       gitByTab: {},
       closedTabs: [],
@@ -348,6 +354,7 @@ export const useStore = create<Store>()(
           const { [id]: _dropped, ...statusByTab } = s.statusByTab;
           const permissions = s.permissions.filter((p) => p.tab_id !== id);
           const questions = s.questions.filter((q) => q.tab_id !== id);
+          const commands = s.commands.filter((c) => c.tab_id !== id);
           const alerted = s.alerted.filter((a) => a !== id);
           const { [id]: _agents, ...subagentsByTab } = s.subagentsByTab;
           if (s.detached.includes(id)) closeDetachedWindow(id);
@@ -363,6 +370,7 @@ export const useStore = create<Store>()(
             statusByTab,
             permissions,
             questions,
+            commands,
             alerted,
             detached,
             closedTabs,
@@ -552,6 +560,7 @@ export const useStore = create<Store>()(
             statusByTab,
             permissions: s.permissions.filter((p) => !p.tab_id || !doomed.has(p.tab_id)),
             questions: s.questions.filter((q) => !q.tab_id || !doomed.has(q.tab_id)),
+            commands: s.commands.filter((c) => !c.tab_id || !doomed.has(c.tab_id)),
             alerted: s.alerted.filter((a) => !doomed.has(a)),
             detached: s.detached.filter((d) => !doomed.has(d)),
             closedTabs: rememberClosed(s.closedTabs, s.tabs.filter((t) => doomed.has(t.id))),
@@ -605,6 +614,8 @@ export const useStore = create<Store>()(
         });
       },
       addQuestion: (q) => set((s) => ({ questions: [...s.questions, q] })),
+      addCommand: (c) => set((s) => ({ commands: [...s.commands, c] })),
+      dropCommand: (id) => set((s) => ({ commands: s.commands.filter((c) => c.id !== id) })),
       dropQuestion: ({ id, toolUseId, tabId }) =>
         set((s) => ({
           questions: s.questions.filter(

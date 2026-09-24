@@ -49,6 +49,14 @@ export type Layout = "sidebar" | "topbar";
 /** Which edge of the window holds the limits and split bar. */
 export type BarPosition = "top" | "bottom";
 
+/** A shell command Claude asked the user to run, shown as a button. */
+export interface CommandSuggestion {
+  id: string;
+  tab_id: string | null;
+  command: string;
+  reason: string | null;
+}
+
 /** A subagent a tab's Claude session started and has not finished. */
 export interface Subagent {
   /** Tool use id of the call that started it. */
