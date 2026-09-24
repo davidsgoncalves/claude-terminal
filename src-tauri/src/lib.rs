@@ -30,6 +30,15 @@ pub fn run() {
             hooks::start_server(app.handle().clone());
             Ok(())
         })
+        // The mini panel and detached terminals are asked to close with the
+        // main window, but each has to close itself, and on Linux one could
+        // linger and keep the process alive. The main window going away ends
+        // the app outright.
+        .on_window_event(|window, event| {
+            if window.label() == "main" && matches!(event, tauri::WindowEvent::Destroyed) {
+                window.app_handle().exit(0);
+            }
+        })
         .invoke_handler(tauri::generate_handler![
             pty::pty_spawn,
             pty::pty_write,
