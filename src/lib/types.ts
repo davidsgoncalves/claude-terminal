@@ -28,6 +28,14 @@ export interface Group {
   fixed?: boolean;
   /** Kept out of the tab list until restored; its sessions keep running. */
   hidden?: boolean;
+  /** Requests approved without asking for tabs in this group. */
+  allowRules?: PermissionRule[];
+}
+
+/** A tool approved for a whole group; a shell command matches only exactly. */
+export interface PermissionRule {
+  tool: string;
+  command: string | null;
 }
 
 /** Catch-all group, so a session never needs a group created first. */

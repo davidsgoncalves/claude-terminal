@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { fileStorage } from "./persist";
 import { markPendingResume } from "./restored";
+import { sameRule } from "./permRules";
 import { closeDetachedWindow, focusDetachedWindow, openDetachedWindow } from "./detach";
 import {
   GROUP_COLORS,
@@ -16,6 +17,7 @@ import {
   type HookEvent,
   type HookSetup,
   type PermissionRequest,
+  type PermissionRule,
   paneCount,
   type BarPosition,
   type Layout,
@@ -95,6 +97,8 @@ interface Store {
   cycleGroupColor: (id: string) => void;
   toggleGroupCollapsed: (id: string) => void;
   setGroupHidden: (id: string, hidden: boolean) => void;
+  addGroupRule: (id: string, rule: PermissionRule) => void;
+  removeGroupRule: (id: string, rule: PermissionRule) => void;
   removeGroup: (id: string) => void;
 
   addTab: (
@@ -219,6 +223,19 @@ export const useStore = create<Store>()(
             s.activeTabId && gone.has(s.activeTabId) ? (panes.find((p) => p != null) ?? null) : s.activeTabId;
           return { groups, panes, activeTabId };
         }),
+      addGroupRule: (id, rule) =>
+        set((s) => ({
+          groups: s.groups.map((g) => {
+            if (g.id !== id || g.allowRules?.some((r) => sameRule(r, rule))) return g;
+            return { ...g, allowRules: [...(g.allowRules ?? []), rule] };
+          }),
+        })),
+      removeGroupRule: (id, rule) =>
+        set((s) => ({
+          groups: s.groups.map((g) =>
+            g.id === id ? { ...g, allowRules: (g.allowRules ?? []).filter((r) => !sameRule(r, rule)) } : g,
+          ),
+        })),
       removeGroup: (id) =>
         set((s) => {
           if (id === UNGROUPED_ID) return s;

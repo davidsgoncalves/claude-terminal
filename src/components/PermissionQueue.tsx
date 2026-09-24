@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useStore } from "../lib/store";
 import { describeTool, looksDestructive } from "../lib/describe";
+import { describeRule, ruleFor } from "../lib/permRules";
 import type { PermissionDecision, PermissionRequest, QuestionItem } from "../lib/types";
 
 function Countdown({ req }: { req: PermissionRequest }) {
@@ -21,12 +22,14 @@ function Countdown({ req }: { req: PermissionRequest }) {
 }
 
 function Item({ req }: { req: PermissionRequest }) {
-  const { tabs, activateTab, dropPermission } = useStore();
+  const { tabs, groups, activateTab, dropPermission, addGroupRule } = useStore();
   const [sent, setSent] = useState<PermissionDecision | null>(null);
   const tab = tabs.find((t) => t.id === req.tab_id);
   const tool = req.payload.tool_name;
   const summary = describeTool(tool, req.payload.tool_input);
   const risky = looksDestructive(tool, req.payload.tool_input);
+  const group = groups.find((g) => g.id === tab?.groupId && !g.fixed);
+  const rule = ruleFor(req.payload);
 
   const decide = async (decision: PermissionDecision) => {
     setSent(decision);
@@ -66,6 +69,20 @@ function Item({ req }: { req: PermissionRequest }) {
           Permitir
         </button>
       </div>
+      {group && rule && !risky && (
+        <button
+          className="perm-always"
+          disabled={!!sent}
+          title={`Aprova agora e, daqui pra frente, sem perguntar: ${describeRule(rule)}`}
+          onClick={() => {
+            addGroupRule(group.id, rule);
+            void decide("allow");
+          }}
+        >
+          Sempre permitir no grupo {group.name}
+          {rule.command === null ? ` (qualquer ${rule.tool})` : ""}
+        </button>
+      )}
     </li>
   );
 }
