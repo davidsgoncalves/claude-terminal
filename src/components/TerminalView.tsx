@@ -3,7 +3,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { SerializeAddon } from "@xterm/addon-serialize";
-import { serializers, terminals, TERMINAL_OPTIONS } from "../lib/terminals";
+import { SearchAddon } from "@xterm/addon-search";
+import { searches, serializers, terminals, TERMINAL_OPTIONS } from "../lib/terminals";
+import { attachLinks, carriesFiles, pasteDroppedFiles } from "../lib/termExtras";
 import { takePendingResume } from "../lib/restored";
 import type { Tab } from "../lib/types";
 
@@ -21,12 +23,14 @@ interface Props {
 }
 
 /** Cmd shortcuts the app owns; xterm ignores them so they bubble up to the window handler. */
-const APP_SHORTCUTS = new Set(["t", "w", "p", "b", "e", "1", "2", "3", "4", "5", "6", "7", "8", "9", "[", "]"]);
+const APP_SHORTCUTS = new Set(["t", "w", "p", "f", "b", "e", "1", "2", "3", "4", "5", "6", "7", "8", "9", "[", "]"]);
 
 export function TerminalView({ tab, visible, focused, rect, color, onFocus, onContextMenu }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const termRef = useRef<Terminal | null>(null);
   const fitRef = useRef<FitAddon | null>(null);
+  const cwdRef = useRef(tab.cwd);
+  cwdRef.current = tab.cwd;
 
   useEffect(() => {
     const el = ref.current;
@@ -35,8 +39,11 @@ export function TerminalView({ tab, visible, focused, rect, color, onFocus, onCo
     const term = new Terminal(TERMINAL_OPTIONS);
     const fit = new FitAddon();
     const serializer = new SerializeAddon();
+    const search = new SearchAddon();
     term.loadAddon(fit);
     term.loadAddon(serializer);
+    term.loadAddon(search);
+    const links = attachLinks(term, () => cwdRef.current);
     term.open(el);
     fit.fit();
 
@@ -53,6 +60,7 @@ export function TerminalView({ tab, visible, focused, rect, color, onFocus, onCo
 
     terminals.set(tab.id, term);
     serializers.set(tab.id, serializer);
+    searches.set(tab.id, search);
     termRef.current = term;
     fitRef.current = fit;
 
@@ -80,6 +88,8 @@ export function TerminalView({ tab, visible, focused, rect, color, onFocus, onCo
       dataSub.dispose();
       terminals.delete(tab.id);
       serializers.delete(tab.id);
+      searches.delete(tab.id);
+      links.dispose();
       term.dispose();
       invoke("pty_kill", { id: tab.id }).catch(() => {});
     };
@@ -110,6 +120,15 @@ export function TerminalView({ tab, visible, focused, rect, color, onFocus, onCo
       }}
       onMouseDown={onFocus}
       onContextMenu={onContextMenu}
+      onDragOver={(e) => {
+        if (carriesFiles(e.dataTransfer)) e.preventDefault();
+      }}
+      onDrop={(e) => {
+        if (!carriesFiles(e.dataTransfer)) return;
+        e.preventDefault();
+        onFocus();
+        void pasteDroppedFiles(tab.id, e.dataTransfer).then(() => termRef.current?.focus());
+      }}
     />
   );
 }
