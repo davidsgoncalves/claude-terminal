@@ -837,3 +837,17 @@ button.star.on { color: var(--accent); }
 }
 .perm-item.overlay .perm-meta { display: none; }
 .pane-commands .perm-item.overlay { background: var(--panel-2); }
+
+/* A session waiting on the user: the pane frame pulses until it is handled. */
+@keyframes attention-pulse {
+  0%, 100% { border-color: color-mix(in srgb, var(--c-permission) 45%, transparent); box-shadow: inset 0 0 0 0 transparent; }
+  50% { border-color: var(--c-permission); box-shadow: inset 0 0 18px 2px color-mix(in srgb, var(--c-permission) 35%, transparent); }
+}
+.term-pane.attention::after {
+  border-width: max(2px, var(--terminal-border, 1px));
+  animation: attention-pulse 1.4s ease-in-out infinite;
+}
+.term-pane.attention::before { background: var(--c-permission); }
+@media (prefers-reduced-motion: reduce) {
+  .term-pane.attention::after { animation: none; border-color: var(--c-permission); }
+}

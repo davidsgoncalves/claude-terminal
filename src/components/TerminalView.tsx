@@ -26,9 +26,22 @@ interface Props {
   onDropTab: (tabId: string) => void;
   /** A saved session dragged from the sessions list was dropped here. */
   onDropSession: (ref: SessionRef) => void;
+  /** Something in this session waits on the user: a permission, a question or a command. */
+  attention: boolean;
 }
 
-export function TerminalView({ tab, visible, focused, rect, color, onFocus, onContextMenu, onDropTab, onDropSession }: Props) {
+export function TerminalView({
+  tab,
+  visible,
+  focused,
+  rect,
+  color,
+  onFocus,
+  onContextMenu,
+  onDropTab,
+  onDropSession,
+  attention,
+}: Props) {
   const [dropping, setDropping] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const termRef = useRef<Terminal | null>(null);
@@ -117,7 +130,7 @@ export function TerminalView({ tab, visible, focused, rect, color, onFocus, onCo
   return (
     <div
       ref={ref}
-      className={`term-pane ${focused ? "focused" : ""} ${dropping ? "drop-target" : ""}`}
+      className={`term-pane ${focused ? "focused" : ""} ${dropping ? "drop-target" : ""} ${attention ? "attention" : ""}`}
       style={{
         display: visible ? "block" : "none",
         ...rect,
