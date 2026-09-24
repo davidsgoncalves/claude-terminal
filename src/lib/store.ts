@@ -121,6 +121,8 @@ interface Store {
   tabTitleWrap: TitleWrap;
   /** Background tint of each group in the tab list. */
   groupTint: GroupTint;
+  /** The one-time question about sending error reports was answered. */
+  errorReportsAsked: boolean;
   /** Whether the raw hook events tab is shown in the right panel. */
   showEvents: boolean;
   /** Whether the floating mini panel is shown. */
@@ -209,6 +211,7 @@ interface Store {
   setGroupTint: (t: GroupTint) => void;
   setMiniPanel: (on: boolean) => void;
   setShowEvents: (on: boolean) => void;
+  setErrorReportsAsked: (asked: boolean) => void;
   setMiniBounds: (b: MiniBounds) => void;
   setSplitMode: (m: SplitMode) => void;
   focusPane: (index: number) => void;
@@ -249,6 +252,7 @@ export const useStore = create<Store>()(
       groupTint: "subtle",
       miniPanel: false,
       showEvents: false,
+      errorReportsAsked: false,
       miniBounds: null,
       splitMode: "single",
       panes: [null, null, null, null],
@@ -576,6 +580,7 @@ export const useStore = create<Store>()(
       setGroupTint: (groupTint) => set({ groupTint }),
       setMiniPanel: (miniPanel) => set({ miniPanel }),
       setShowEvents: (showEvents) => set({ showEvents }),
+      setErrorReportsAsked: (errorReportsAsked) => set({ errorReportsAsked }),
       setMiniBounds: (miniBounds) => set({ miniBounds }),
       setSplitMode: (splitMode) =>
         set((s) => {
@@ -675,6 +680,7 @@ export const useStore = create<Store>()(
         groupTint: s.groupTint,
         miniPanel: s.miniPanel,
         showEvents: s.showEvents,
+        errorReportsAsked: s.errorReportsAsked,
         miniBounds: s.miniBounds,
         prompts: s.prompts,
         sessionGroups: s.sessionGroups,

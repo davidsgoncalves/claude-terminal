@@ -145,6 +145,19 @@ externo.
 | Configurações | `⌘,` | `Ctrl+Shift+,` |
 | Mini painel flutuante | `⌘⇧M` | `Ctrl+Shift+M` |
 
+## Relatórios de erro
+
+O app guarda os próprios erros em `errors.log`, na pasta de dados. Em
+**Configurações → Sobre**, "Relatar problema" abre uma issue neste repositório
+já preenchida com a versão, o sistema e as últimas linhas desse registro.
+
+Com o envio ligado (o app pergunta uma vez, e a opção fica no Sobre), os mesmos
+erros vão para o Sentry. Nada do que é digitado ou exibido no terminal é
+enviado. Antes de sair da máquina, o texto perde o caminho da pasta pessoal, o
+nome de usuário e qualquer sequência parecida com um token. O envio só existe
+nos builds que carregam o DSN do projeto, passado pelo secret
+`SHELLHIVE_SENTRY_DSN` do repositório.
+
 ## Onde ficam os dados
 
 Tudo em `~/Library/Application Support/claude-terminal` no macOS, ou
@@ -154,6 +167,8 @@ instalações anteriores continuarem com suas abas e configurações:
 | Arquivo | Conteúdo |
 | --- | --- |
 | `data.db` | SQLite com o layout, os eventos de hook, as métricas de permissão e o índice de busca |
+| `errors.log` | Os erros do app, já sem caminhos pessoais nem tokens |
+| `error-reports.json` | Se o envio de relatórios de erro está ligado |
 | `hooks.json` | Configuração passada ao Claude Code via `--settings` |
 | `mcp.json` | Registro do servidor MCP |
 | `bin/claude` | Atalho que injeta as configurações |

@@ -1,4 +1,5 @@
 mod db;
+mod errors;
 mod files;
 mod git;
 mod hookclient;
@@ -29,6 +30,7 @@ pub fn run() {
         .manage(permissions::Permissions::default())
         .manage(mcp::Editors::default())
         .setup(|app| {
+            errors::init(app.package_info().version.to_string());
             app.manage(db::open().map_err(|e| format!("database unavailable: {e}"))?);
             if let Err(e) = hooks::write_scripts() {
                 eprintln!("[setup] could not write hook scripts: {e}");
@@ -59,6 +61,10 @@ pub fn run() {
             db::state_save,
             db::metrics_summary,
             git::git_info,
+            errors::error_reports_get,
+            errors::error_reports_set,
+            errors::report_error,
+            errors::error_log_tail,
             files::link_open,
             files::path_exists,
             files::drop_save,

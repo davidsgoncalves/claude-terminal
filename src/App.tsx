@@ -13,6 +13,7 @@ import { Dialogs } from "./components/Dialogs";
 import { GroupMenu } from "./components/GroupMenu";
 import { TabMenu } from "./components/TabMenu";
 import { UpdateBanner } from "./components/UpdateBanner";
+import { ErrorReportsPrompt } from "./components/ErrorReportsPrompt";
 import { PaneOverlay } from "./components/PaneOverlay";
 import { EmptyPane } from "./components/EmptyPane";
 import { EditorPanel } from "./components/EditorPanel";
@@ -477,6 +478,7 @@ function App() {
   return (
     <div className="layout">
       <UpdateBanner />
+      <ErrorReportsPrompt />
       {barPosition === "top" && <TopBar />}
       <div className="body">
         {layout === "sidebar" && <Sidebar />}
