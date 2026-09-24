@@ -16,8 +16,9 @@ const gh = (args) => execFileSync("gh", args, { encoding: "utf8" });
 // Asset name suffix -> updater platform key. Linux self-update works from the
 // AppImage only; a .deb install has to be replaced by hand.
 const PLATFORMS = [
-  { suffix: "_aarch64.app.tar.gz", key: "darwin-aarch64" },
-  { suffix: "_x64.app.tar.gz", key: "darwin-x86_64" },
+  // Names set by rename-assets.mjs, which runs first.
+  { suffix: "_macOS-Apple-Silicon_atualizacao.app.tar.gz", key: "darwin-aarch64" },
+  { suffix: "_macOS-Intel_atualizacao.app.tar.gz", key: "darwin-x86_64" },
   { suffix: ".AppImage", key: "linux-x86_64" },
   // Read by the app itself: the Tauri updater cannot install a package, so a
   // .deb install downloads this and hands it to the system installer.

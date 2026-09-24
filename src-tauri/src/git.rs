@@ -49,5 +49,10 @@ pub async fn git_info(cwd: String) -> Option<GitInfo> {
             removed += cols.next().and_then(|n| n.parse::<u64>().ok()).unwrap_or(0);
         }
     }
-    Some(GitInfo { branch, added, removed, files })
+    Some(GitInfo {
+        branch,
+        added,
+        removed,
+        files,
+    })
 }
