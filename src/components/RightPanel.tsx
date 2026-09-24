@@ -8,7 +8,8 @@ import { shortcutLabel } from "../lib/shortcuts";
 type PanelTab = "queue" | "sessions" | "events";
 
 export function RightPanel() {
-  const { eventsOpen, toggleEvents, permissions, questions } = useStore();
+  const { eventsOpen, toggleEvents, permissions, questions, commands } = useStore();
+  const pending = permissions.length + questions.length + commands.length;
   const [panel, setPanel] = useState<PanelTab>("queue");
 
   if (!eventsOpen) {
@@ -17,15 +18,15 @@ export function RightPanel() {
         <button className="icon-btn" title={`Mostrar painel (${shortcutLabel("events")})`} onClick={toggleEvents}>
           «
         </button>
-        {permissions.length + questions.length > 0 && (
-          <span className="badge">{permissions.length + questions.length}</span>
+        {pending > 0 && (
+          <span className="badge">{pending}</span>
         )}
       </aside>
     );
   }
 
   const TABS: Array<{ key: PanelTab; label: string; badge?: number }> = [
-    { key: "queue", label: "Fila", badge: permissions.length + questions.length },
+    { key: "queue", label: "Fila", badge: pending },
     { key: "sessions", label: "Sessões" },
     { key: "events", label: "Eventos" },
   ];

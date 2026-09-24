@@ -55,6 +55,7 @@ import {
   type HookEvent,
   type HookSetup,
   type EditorRequest,
+  type CommandSuggestion,
   type GitInfo,
   type PermissionRequest,
   type QuestionItem,
@@ -158,6 +159,12 @@ function useBackendBridge() {
         pendingMessage: `${req.payload.tool_name ?? "ferramenta"}: ${summary}`,
       });
       void notify(`Permissão: ${req.payload.tool_name ?? "ferramenta"}`, `${tab?.title ?? "sessão"} · ${summary}`);
+    }).then((u) => unlisteners.push(u));
+
+    listen<CommandSuggestion>("command-suggestion", (ev) => {
+      store().addCommand(ev.payload);
+      const tab = store().tabs.find((t) => t.id === ev.payload.tab_id);
+      void notify("Comando para você rodar", `${tab?.title ?? "sessão"} · ${ev.payload.command}`);
     }).then((u) => unlisteners.push(u));
 
     listen<PermissionResolved>("permission-resolved", (ev) => {

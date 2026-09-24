@@ -335,7 +335,7 @@ pub fn write_scripts() -> Result<HookSetup, String> {
              \x20 -H \"X-Tab-Id: ${{CLAUDE_TERMINAL_TAB_ID:-}}\" \\\n\
              \x20 --data-binary @- \"http://127.0.0.1:{PORT}/hook\" >/dev/null 2>&1 || true\n\
              cat <<'JSON'\n\
-             {{\"hookSpecificOutput\":{{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Voce esta rodando dentro do Shellhive, um terminal com abas agrupadas feito para o Claude Code. Ele expoe o servidor MCP 'claude-terminal'. Use a ferramenta open_editor sempre que precisar que o usuario escreva, preencha ou revise um texto: ela abre um editor em painel logo abaixo do terminal e devolve o texto final, e salva o arquivo quando voce passa 'path'. Prefira open_editor a pedir para o usuario abrir VSCode ou outro editor externo.\"}}}}\n\
+             {{\"hookSpecificOutput\":{{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Voce esta rodando dentro do Shellhive, um terminal com abas agrupadas feito para o Claude Code. Ele expoe o servidor MCP 'claude-terminal'. Use a ferramenta open_editor sempre que precisar que o usuario escreva, preencha ou revise um texto: ela abre um editor em painel logo abaixo do terminal e devolve o texto final, e salva o arquivo quando voce passa 'path'. Prefira open_editor a pedir para o usuario abrir VSCode ou outro editor externo. Quando precisar que o usuario rode um comando de shell ele mesmo, chame suggest_command em vez de pedir para ele digitar ! comando: o comando vira um botao que roda nesta sessao.\"}}}}\n\
              JSON\n\
              exit 0\n"
         ),
@@ -397,7 +397,8 @@ pub fn write_scripts() -> Result<HookSetup, String> {
         "permissions": {
             "allow": [
                 "mcp__claude-terminal__open_editor",
-                "mcp__claude-terminal__list_sessions"
+                "mcp__claude-terminal__list_sessions",
+                "mcp__claude-terminal__suggest_command"
             ]
         },
         "hooks": hooks,
