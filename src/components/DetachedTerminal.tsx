@@ -5,7 +5,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { decodeBase64, TERMINAL_OPTIONS } from "../lib/terminals";
-import { attachLinks, carriesFiles, pasteDroppedFiles } from "../lib/termExtras";
+import { attachLinks, carriesFiles, fixLinuxInput, pasteDroppedFiles } from "../lib/termExtras";
 import {
   DETACH_CLOSED,
   DETACH_READY,
@@ -38,6 +38,7 @@ export function DetachedTerminal({ tabId }: { tabId: string }) {
     const fit = new FitAddon();
     term.loadAddon(fit);
     term.open(el);
+    const input = fixLinuxInput(term);
     let cwd: string | null = null;
     const links = attachLinks(term, () => cwd);
 
@@ -92,6 +93,7 @@ export function DetachedTerminal({ tabId }: { tabId: string }) {
       observer.disconnect();
       dataSub.dispose();
       links.dispose();
+      input.dispose();
       term.dispose();
       for (const p of [unTitle, unData, unSnap, unExit, unClose]) void p.then((u) => u());
     };

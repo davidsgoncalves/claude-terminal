@@ -93,3 +93,42 @@ export async function pasteDroppedFiles(tabId: string, data: DataTransfer): Prom
 export function carriesFiles(data: DataTransfer): boolean {
   return [...data.types].includes("Files");
 }
+
+const IS_LINUX = typeof navigator !== "undefined" && /Linux/.test(navigator.userAgent);
+
+/**
+ * WebKitGTK with an input method (IBus, as on ABNT2 layouts) leaves typed text
+ * in xterm's hidden textarea. Keys then arrive as composition keys and xterm
+ * resends what is left there, so "palhaço" comes out as "palhaççç". Emptying
+ * the textarea once xterm has read each input keeps it from being resent.
+ */
+export function fixLinuxInput(term: Terminal): IDisposable {
+  const ta = term.textarea;
+  if (!IS_LINUX || !ta) return { dispose: () => {} };
+  let composing = false;
+  // Runs after xterm's own zero-delay reads of the textarea.
+  const clearSoon = () =>
+    setTimeout(() => {
+      if (!composing) ta.value = "";
+    }, 10);
+  const onStart = () => {
+    composing = true;
+  };
+  const onEnd = () => {
+    composing = false;
+    clearSoon();
+  };
+  const onInput = (e: Event) => {
+    if (!(e as InputEvent).isComposing) clearSoon();
+  };
+  ta.addEventListener("compositionstart", onStart);
+  ta.addEventListener("compositionend", onEnd);
+  ta.addEventListener("input", onInput);
+  return {
+    dispose: () => {
+      ta.removeEventListener("compositionstart", onStart);
+      ta.removeEventListener("compositionend", onEnd);
+      ta.removeEventListener("input", onInput);
+    },
+  };
+}

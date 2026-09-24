@@ -5,7 +5,7 @@ import { FitAddon } from "@xterm/addon-fit";
 import { SerializeAddon } from "@xterm/addon-serialize";
 import { SearchAddon } from "@xterm/addon-search";
 import { searches, serializers, terminals, TERMINAL_OPTIONS } from "../lib/terminals";
-import { attachLinks, carriesFiles, pasteDroppedFiles } from "../lib/termExtras";
+import { attachLinks, carriesFiles, fixLinuxInput, pasteDroppedFiles } from "../lib/termExtras";
 import { takePendingResume } from "../lib/restored";
 import type { Tab } from "../lib/types";
 
@@ -45,6 +45,7 @@ export function TerminalView({ tab, visible, focused, rect, color, onFocus, onCo
     term.loadAddon(search);
     const links = attachLinks(term, () => cwdRef.current);
     term.open(el);
+    const input = fixLinuxInput(term);
     fit.fit();
 
     term.attachCustomKeyEventHandler((e) => {
@@ -90,6 +91,7 @@ export function TerminalView({ tab, visible, focused, rect, color, onFocus, onCo
       serializers.delete(tab.id);
       searches.delete(tab.id);
       links.dispose();
+      input.dispose();
       term.dispose();
       invoke("pty_kill", { id: tab.id }).catch(() => {});
     };
