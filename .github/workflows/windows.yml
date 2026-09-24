@@ -1,10 +1,8 @@
 name: windows
 
-# Windows is built and smoke-tested here but kept out of releases until it
-# has been tried on a real machine. The installer is attached to each run.
+# Smoke-tests the Windows build on pull requests; releases build Windows in
+# release.yml. The installer is attached to each run.
 on:
-  push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
 

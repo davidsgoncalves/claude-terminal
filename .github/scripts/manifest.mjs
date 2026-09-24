@@ -22,6 +22,7 @@ const PLATFORMS = [
   { suffix: "_macOS-Apple-Silicon_atualizacao.app.tar.gz", key: "darwin-aarch64" },
   { suffix: "_macOS-Intel_atualizacao.app.tar.gz", key: "darwin-x86_64" },
   { suffix: ".AppImage", key: "linux-x86_64" },
+  { suffix: "_Windows.exe", key: "windows-x86_64" },
   // Read by the app itself: the Tauri updater cannot install a package, so a
   // .deb install downloads this and hands it to the system installer.
   { suffix: ".deb", key: "linux-x86_64-deb" },

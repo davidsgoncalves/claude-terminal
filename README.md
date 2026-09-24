@@ -42,6 +42,7 @@ Baixe o instalador da [última release](../../releases/latest):
 | macOS Intel | `macOS-Intel.dmg` |
 | Linux | `Linux.AppImage` |
 | Debian ou Ubuntu | `Linux-Debian-Ubuntu.deb` |
+| Windows 10 ou 11 | `Windows.exe` |
 
 O app verifica atualizações ao abrir e a cada seis horas. No macOS e no
 AppImage ele instala sozinho depois da sua confirmação. Instalado pelo `.deb`,
@@ -62,12 +63,12 @@ xattr -dr com.apple.quarantine "/Applications/Shellhive.app"
 
 ### Windows
 
-O build nativo para Windows ainda é experimental e fica fora das releases até
-ser testado numa máquina real. Cada execução do workflow `windows` no GitHub
-Actions gera o instalador (`.exe`) como artefato para baixar e testar. As abas
-abrem no PowerShell, e os hooks do Claude Code rodam pelo próprio executável
-do app em vez de scripts de shell. O Windows mostra o aviso do SmartScreen,
-porque o instalador não é assinado.
+O instalador `Windows.exe` ainda não foi usado a fundo numa máquina real; os
+erros que aparecerem chegam pelos relatórios de erro, para quem aceitar o
+envio. As abas abrem no PowerShell, e os hooks do Claude Code rodam pelo próprio
+executável do app em vez de scripts de shell. O instalador não é assinado, então
+o Windows mostra o aviso do SmartScreen: clique em "Mais informações" e em
+"Executar assim mesmo". O app se atualiza sozinho como no macOS.
 
 ### Windows com WSL
 

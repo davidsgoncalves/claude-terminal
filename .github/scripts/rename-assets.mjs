@@ -24,6 +24,8 @@ const RULES = [
   { match: /_x64\.app\.tar\.gz$/, name: `${base}_macOS-Intel_atualizacao.app.tar.gz` },
   { match: /\.AppImage$/, name: `${base}_Linux.AppImage` },
   { match: /\.deb$/, name: `${base}_Linux-Debian-Ubuntu.deb` },
+  // The NSIS setup is both the download and the updater bundle on Windows.
+  { match: /-setup\.exe$/, name: `${base}_Windows.exe` },
 ];
 
 const release = JSON.parse(gh(["api", `repos/${repo}/releases/${releaseId}`]));
