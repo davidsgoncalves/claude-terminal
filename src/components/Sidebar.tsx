@@ -1,6 +1,7 @@
 import { useState, type DragEvent } from "react";
 import { openSessionInGroup, useStore } from "../lib/store";
 import { droppedOutside } from "../lib/detach";
+import { HiddenGroups } from "./HiddenGroups";
 import { STATE_LABEL, type Group, type StatusPayload, type Tab } from "../lib/types";
 
 function ctxClass(pct: number): string {
@@ -190,7 +191,8 @@ function GroupSection({ group, tabs, activeTabId }: { group: Group; tabs: Tab[];
 }
 
 export function Sidebar() {
-  const { groups, tabs, activeTabId, sidebarOpen, toggleSidebar, openModal } = useStore();
+  const { tabs, activeTabId, sidebarOpen, toggleSidebar, openModal } = useStore();
+  const groups = useStore((s) => s.groups).filter((g) => !g.hidden);
 
   if (!sidebarOpen) {
     return (
@@ -232,6 +234,7 @@ export function Sidebar() {
         ))}
       </div>
       <footer className="sidebar-footer">
+        <HiddenGroups variant="sidebar" />
         <button className="ghost" onClick={() => openModal({ kind: "newGroup" })}>
           + Novo grupo
         </button>

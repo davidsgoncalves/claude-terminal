@@ -26,6 +26,8 @@ export interface Group {
   folderId: string | null;
   /** The always-present catch-all group, which cannot be removed. */
   fixed?: boolean;
+  /** Kept out of the tab list until restored; its sessions keep running. */
+  hidden?: boolean;
 }
 
 /** Catch-all group, so a session never needs a group created first. */

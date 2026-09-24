@@ -84,7 +84,7 @@ html, body, #root {
   border-bottom: 1px solid var(--border);
 }
 .sidebar-header h1 { font-size: 12px; margin: 0; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
-.sidebar-footer { padding: 8px; border-top: 1px solid var(--border); }
+.sidebar-footer { padding: 8px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
 
 .icon-btn {
   background: transparent; border: none; color: var(--muted); cursor: pointer;
@@ -654,3 +654,29 @@ button.star.on { color: var(--accent); }
 }
 .detached-back:hover { border-color: var(--accent); }
 .detached-term { flex: 1; min-height: 0; padding: 4px; }
+
+/* ---------- hidden groups ---------- */
+.hidden-groups { position: relative; flex-shrink: 0; }
+.hidden-toggle { display: flex; align-items: center; gap: 6px; }
+.hidden-groups.sidebar .hidden-toggle { color: var(--muted); }
+.hidden-caret { margin-left: auto; color: var(--muted); }
+.hidden-groups.strip .hidden-caret { margin-left: 2px; }
+.hidden-list {
+  display: flex; flex-direction: column; gap: 2px; padding: 4px;
+  background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
+}
+.hidden-groups.sidebar .hidden-list { margin-bottom: 6px; order: -1; max-height: 40vh; overflow-y: auto; }
+.hidden-groups.sidebar { display: flex; flex-direction: column; }
+.hidden-groups.strip .hidden-list {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 200; min-width: 240px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.5);
+}
+.hidden-row { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 5px; font-size: 12px; }
+.hidden-row:hover { background: rgba(255,255,255,.06); }
+.hidden-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hidden-row .count { color: var(--muted); font-size: 11px; }
+.hidden-restore {
+  background: transparent; border: 1px solid var(--border); color: var(--fg); border-radius: 5px;
+  padding: 2px 8px; font-size: 11px; cursor: pointer;
+}
+.hidden-restore:hover { border-color: var(--accent); }

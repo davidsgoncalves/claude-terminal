@@ -1,6 +1,7 @@
 import { useState, type DragEvent } from "react";
 import { openSessionInGroup, useStore } from "../lib/store";
 import { droppedOutside } from "../lib/detach";
+import { HiddenGroups } from "./HiddenGroups";
 import { STATE_LABEL, type Group, type Tab } from "../lib/types";
 
 function StripTab({ tab, active }: { tab: Tab; active: boolean }) {
@@ -126,7 +127,7 @@ function GroupSegment({ group, tabs, activeTabId }: { group: Group; tabs: Tab[];
 export function TabStrip() {
   const { groups, tabs, activeTabId, openModal } = useStore();
   const ordered = [
-    ...groups.filter((g) => !g.fixed && tabs.some((t) => t.groupId === g.id)),
+    ...groups.filter((g) => !g.fixed && !g.hidden && tabs.some((t) => t.groupId === g.id)),
     ...groups.filter((g) => g.fixed),
   ];
   return (
@@ -136,6 +137,7 @@ export function TabStrip() {
           <GroupSegment key={g.id} group={g} tabs={tabs.filter((t) => t.groupId === g.id)} activeTabId={activeTabId} />
         ))}
       </div>
+      <HiddenGroups variant="strip" />
       <button className="strip-new-group" title="Novo grupo" onClick={() => openModal({ kind: "newGroup" })}>
         + Novo grupo
       </button>
