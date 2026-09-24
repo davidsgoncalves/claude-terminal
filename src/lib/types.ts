@@ -41,6 +41,9 @@ export type Layout = "sidebar" | "topbar";
 /** Which edge of the window holds the limits and split bar. */
 export type BarPosition = "top" | "bottom";
 
+/** How a long tab name fits in the sidebar. */
+export type TitleWrap = "truncate" | "wrap";
+
 /** Thickness of the group-coloured frame around the terminal, in pixels. */
 export const BORDER_OPTIONS = [
   { value: 0, label: "Sem borda" },

@@ -124,6 +124,9 @@ button.ghost:disabled { opacity: .4; cursor: default; }
 .tab-row:hover { background: var(--panel-2); }
 .tab-row.active { background: var(--panel-2); border-left-color: var(--group-color); }
 .tab-row .tab-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.tab-row.wrap { align-items: flex-start; }
+.tab-row.wrap .tab-title { white-space: normal; overflow-wrap: anywhere; line-height: 16px; }
+.tab-row.wrap .dot { margin-top: 4px; }
 
 /* Per-tab context gauge: conic ring + percentage, hidden until a session reports. */
 .ctx-gauge { display: inline-flex; transition: opacity .12s; align-items: center; gap: 4px; flex-shrink: 0; font-size: 10px; color: var(--muted); font-variant-numeric: tabular-nums; }
