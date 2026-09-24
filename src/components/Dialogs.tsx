@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { findUpdate, installKind, RELEASES_URL } from "../lib/update";
+import { installKind, RELEASES_URL } from "../lib/update";
+import { useUpdater } from "../lib/updater";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useStore, type SettingsTab } from "../lib/store";
 import { Modal } from "./Modal";
@@ -34,6 +35,8 @@ function AboutTab() {
   const [kind, setKind] = useState("…");
   const [status, setStatus] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+  const { update, pkg, phase, progress, message, look: lookForUpdate, install, restart } = useUpdater();
+  const available = update?.version ?? pkg?.version;
 
   useEffect(() => {
     void getVersion().then(setVersion);
@@ -44,10 +47,8 @@ function AboutTab() {
     setChecking(true);
     setStatus(null);
     try {
-      const found = await findUpdate();
-      setStatus(
-        found ? `Versão ${found.version} disponível. O aviso aparece no topo da janela.` : "Você está na versão mais recente.",
-      );
+      const found = await lookForUpdate();
+      setStatus(found ? null : "Você está na versão mais recente.");
     } catch (err) {
       setStatus(`Não consegui verificar: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
@@ -78,6 +79,30 @@ function AboutTab() {
         </button>
       </div>
       {status && <p className="hint">{status}</p>}
+      {phase === "found" && available && (
+        <div className="about-update">
+          <span>
+            Versão <strong>{available}</strong> disponível.
+          </span>
+          <button className="primary" onClick={() => void install()}>
+            {update ? "Atualizar agora" : "Baixar e instalar"}
+          </button>
+        </div>
+      )}
+      {phase === "working" && <p className="hint">Baixando atualização… {progress}%</p>}
+      {phase === "ready" && (
+        <div className="about-update">
+          <span>Atualização instalada.</span>
+          <button className="primary" onClick={() => void restart()}>
+            Reiniciar agora
+          </button>
+        </div>
+      )}
+      {phase === "handed-off" && <p className="hint">O instalador do sistema foi aberto com o pacote novo.</p>}
+      {phase === "restart-failed" && (
+        <p className="hint">Atualização instalada. Feche e abra o app para concluir.{message ? ` (${message})` : ""}</p>
+      )}
+      {phase === "error" && <p className="error">Falha ao atualizar: {message}</p>}
     </section>
 
     <section className="settings-section">

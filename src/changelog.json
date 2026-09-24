@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.1.11",
+    "date": "2026-09-24",
+    "items": [
+      "Procurar atualizações no Sobre mostra a versão nova ali mesmo, com botão para atualizar, e o aviso no topo também aparece."
+    ]
+  },
+  {
     "version": "0.1.10",
     "date": "2026-09-24",
     "items": [
