@@ -121,6 +121,8 @@ interface Store {
   tabTitleWrap: TitleWrap;
   /** Background tint of each group in the tab list. */
   groupTint: GroupTint;
+  /** Whether the raw hook events tab is shown in the right panel. */
+  showEvents: boolean;
   /** Whether the floating mini panel is shown. */
   miniPanel: boolean;
   /** Where the mini panel was last left, in logical pixels. */
@@ -206,6 +208,7 @@ interface Store {
   setTabTitleWrap: (w: TitleWrap) => void;
   setGroupTint: (t: GroupTint) => void;
   setMiniPanel: (on: boolean) => void;
+  setShowEvents: (on: boolean) => void;
   setMiniBounds: (b: MiniBounds) => void;
   setSplitMode: (m: SplitMode) => void;
   focusPane: (index: number) => void;
@@ -245,6 +248,7 @@ export const useStore = create<Store>()(
       tabTitleWrap: "wrap",
       groupTint: "subtle",
       miniPanel: false,
+      showEvents: false,
       miniBounds: null,
       splitMode: "single",
       panes: [null, null, null, null],
@@ -571,6 +575,7 @@ export const useStore = create<Store>()(
       setTabTitleWrap: (tabTitleWrap) => set({ tabTitleWrap }),
       setGroupTint: (groupTint) => set({ groupTint }),
       setMiniPanel: (miniPanel) => set({ miniPanel }),
+      setShowEvents: (showEvents) => set({ showEvents }),
       setMiniBounds: (miniBounds) => set({ miniBounds }),
       setSplitMode: (splitMode) =>
         set((s) => {
@@ -669,6 +674,7 @@ export const useStore = create<Store>()(
         tabTitleWrap: s.tabTitleWrap,
         groupTint: s.groupTint,
         miniPanel: s.miniPanel,
+        showEvents: s.showEvents,
         miniBounds: s.miniBounds,
         prompts: s.prompts,
         sessionGroups: s.sessionGroups,
