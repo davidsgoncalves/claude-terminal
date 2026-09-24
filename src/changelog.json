@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.1.19",
+    "date": "2026-09-24",
+    "items": [
+      "Erros do app ficam registrados, e Relatar problema, no Sobre, abre uma issue com eles.",
+      "Relatórios de erro opcionais: o app pergunta uma vez, e nada do terminal é enviado.",
+      "No WSL, links e arquivos abrem no Windows, e a atualização mostra o comando para instalar.",
+      "O botão Ocultos não invade mais a área do terminal."
+    ]
+  },
+  {
     "version": "0.1.18",
     "date": "2026-09-24",
     "items": [
