@@ -35,6 +35,7 @@ jobs:
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          SHELLHIVE_SENTRY_DSN: ${{ secrets.SHELLHIVE_SENTRY_DSN }}
         run: pnpm tauri build --bundles nsis
 
       # Checks what can run without a person at the keyboard: hook mode, and
@@ -61,8 +62,12 @@ jobs:
           Write-Host "MCP tools: $names"
           if ($names -notmatch 'suggest_command') { throw "unexpected tools: $names" }
 
-          '{"hook_event_name":"Notification","message":"smoke"}' | & $exe --hook forward
-          if ($LASTEXITCODE -ne 0) { throw "hook forward exited $LASTEXITCODE" }
+          # A GUI-subsystem exe is not waited on when nothing reads its output,
+          # so run it the way Claude Code does: stdin from a file, wait for exit.
+          $payload = New-TemporaryFile
+          Set-Content -Path $payload -Value '{"hook_event_name":"Notification","message":"smoke"}'
+          $hook = Start-Process -FilePath $exe -ArgumentList "--hook", "forward" -RedirectStandardInput $payload -NoNewWindow -Wait -PassThru
+          if ($hook.ExitCode -ne 0) { throw "hook forward exited $($hook.ExitCode)" }
 
           Stop-Process -Id $app.Id -Force
 
