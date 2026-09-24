@@ -4,6 +4,7 @@ import { getVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { installKind, RELEASES_URL } from "../lib/update";
 import { useUpdater } from "../lib/updater";
+import type { ReportsState } from "../lib/errors";
 import { shortcutLabel, withShortcuts } from "../lib/shortcuts";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useStore, type SettingsTab } from "../lib/store";
@@ -30,6 +31,74 @@ interface ChangelogEntry {
 
 /** Written by hand for each release; `pnpm bump` adds the empty entry. */
 const CHANGELOG = changelog as ChangelogEntry[];
+
+const ISSUE_BODY_MAX = 6000;
+
+/** Opt-in error reports, and a GitHub issue carrying the local error log. */
+function ErrorReportsSection({ version, kind }: { version: string; kind: string }) {
+  const [state, setState] = useState<ReportsState | null>(null);
+
+  useEffect(() => {
+    void invoke<ReportsState>("error_reports_get").then(setState).catch(() => {});
+  }, []);
+
+  const toggle = (enabled: boolean) => {
+    void invoke("error_reports_set", { enabled })
+      .then(() => setState((s) => (s ? { ...s, enabled } : s)))
+      .catch(() => {});
+  };
+
+  const reportProblem = async () => {
+    const log = await invoke<string>("error_log_tail", { lines: 40 }).catch(() => "");
+    const body = [
+      "**O que aconteceu:**",
+      "",
+      "",
+      "**Como reproduzir:**",
+      "",
+      "",
+      "---",
+      `Versão: ${version} · ${kind}`,
+      `Sistema: ${navigator.userAgent}`,
+      "",
+      "Últimos erros registrados:",
+      "```",
+      log || "(nenhum)",
+      "```",
+    ]
+      .join("\n")
+      .slice(0, ISSUE_BODY_MAX);
+    const url = `${RELEASES_URL.replace(/\/releases$/, "")}/issues/new?title=${encodeURIComponent("Problema: ")}&body=${encodeURIComponent(body)}`;
+    void openUrl(url);
+  };
+
+  return (
+    <section className="settings-section">
+      <h3>Relatórios de erro</h3>
+      <p className="hint">
+        Envia os erros do app para análise, sem nada do que você digita ou vê no terminal. Pastas pessoais, nome de
+        usuário e qualquer coisa parecida com token são removidos antes.
+      </p>
+      {state?.available ? (
+        <div className="chip-row">
+          <button className={`chip ${state.enabled ? "on" : ""}`} onClick={() => toggle(true)}>
+            Enviar
+          </button>
+          <button className={`chip ${!state.enabled ? "on" : ""}`} onClick={() => toggle(false)}>
+            Não enviar
+          </button>
+        </div>
+      ) : (
+        <p className="hint">Esta versão não tem o envio configurado. Os erros ficam só no registro local.</p>
+      )}
+      <div className="row">
+        <button className="ghost auto" onClick={() => void reportProblem()}>
+          Relatar problema
+        </button>
+      </div>
+    </section>
+  );
+}
 
 function AboutTab() {
   const [version, setVersion] = useState("…");
@@ -106,6 +175,8 @@ function AboutTab() {
       )}
       {phase === "error" && <p className="error">Falha ao atualizar: {message}</p>}
     </section>
+
+    <ErrorReportsSection version={version} kind={INSTALL_LABEL[kind] ?? kind} />
 
     <section className="settings-section">
       <h3>Diagnóstico</h3>

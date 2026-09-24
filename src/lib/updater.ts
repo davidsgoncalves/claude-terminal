@@ -4,6 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import type { Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { findUpdate } from "./update";
+import { reportError } from "./errors";
 
 export type Phase = "idle" | "found" | "working" | "ready" | "handed-off" | "restart-failed" | "error";
 
@@ -81,6 +82,7 @@ export const useUpdater = create<Updater>()((set, get) => ({
         unlisten();
       }
     } catch (err) {
+      reportError("update", err);
       set({ phase: "error", message: errorText(err) });
     }
   },

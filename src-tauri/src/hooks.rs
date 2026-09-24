@@ -97,6 +97,7 @@ pub fn start_server(app: AppHandle) {
                 Err(e) => {
                     if !warned {
                         eprintln!("hook server cannot bind port {PORT} yet: {e}; retrying");
+                        crate::errors::record("hooks", &format!("porta {PORT} ocupada: {e}"));
                         warned = true;
                     }
                     thread::sleep(BIND_RETRY);

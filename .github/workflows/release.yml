@@ -129,6 +129,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # Where opted-in error reports go; builds without it keep errors local.
+          SHELLHIVE_SENTRY_DSN: ${{ secrets.SHELLHIVE_SENTRY_DSN }}
           # Ad-hoc signature: without any signature an arm64 build downloaded
           # from the internet is reported as damaged instead of unidentified.
           APPLE_SIGNING_IDENTITY: ${{ startsWith(matrix.platform, 'macos') && '-' || '' }}

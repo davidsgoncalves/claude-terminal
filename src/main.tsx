@@ -7,9 +7,11 @@ import { tabIdOfLabel } from "./lib/detach";
 import { DetachedTerminal } from "./components/DetachedTerminal";
 import { MiniPanel } from "./components/MiniPanel";
 import { MINI_LABEL } from "./lib/mini";
+import { watchUncaughtErrors } from "./lib/errors";
 
 // State lives in a file, so it loads before the first render. Rendering first
 // would let early writes persist an empty layout over the saved one.
+watchUncaughtErrors();
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 const label = getCurrentWebviewWindow().label;
 const detachedTab = tabIdOfLabel(label);

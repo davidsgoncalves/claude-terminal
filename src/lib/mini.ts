@@ -1,5 +1,6 @@
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import type { TabState } from "./types";
+import { reportError } from "./errors";
 
 /** Label of the floating window that lists every live tab. */
 export const MINI_LABEL = "mini";
@@ -41,7 +42,7 @@ export function openMiniWindow(bounds: MiniBounds | null): void {
     skipTaskbar: true,
     dragDropEnabled: false,
   });
-  win.once("tauri://error", (e) => console.error("mini panel failed", e));
+  win.once("tauri://error", (e) => reportError("window", `mini panel failed: ${JSON.stringify(e.payload)}`));
 }
 
 export function closeMiniWindow(): void {

@@ -6,6 +6,7 @@ import { SerializeAddon } from "@xterm/addon-serialize";
 import { SearchAddon } from "@xterm/addon-search";
 import { searches, serializers, terminals, TERMINAL_OPTIONS } from "../lib/terminals";
 import { actionOf, isAppShortcut } from "../lib/shortcuts";
+import { reportError } from "../lib/errors";
 import { sessionFromDrag, type SessionRef } from "../lib/store";
 import { attachLinks, carriesFiles, carriesSession, carriesTab, fixLinuxInput, pasteDroppedFiles } from "../lib/termExtras";
 import { takePendingResume } from "../lib/restored";
@@ -89,7 +90,10 @@ export function TerminalView({
           invoke("pty_write", { id: tab.id, data: `claude --resume ${tab.claudeSessionId}\r` });
         }
       })
-      .catch((e) => term.writeln(`\x1b[31mpty_spawn failed: ${e}\x1b[0m`));
+      .catch((e) => {
+        term.writeln(`\x1b[31mpty_spawn failed: ${e}\x1b[0m`);
+        reportError("pty", `pty_spawn failed: ${e}`);
+      });
 
     const dataSub = term.onData((data) => invoke("pty_write", { id: tab.id, data }));
 

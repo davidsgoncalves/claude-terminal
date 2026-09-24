@@ -1,5 +1,6 @@
 import { emitTo } from "@tauri-apps/api/event";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { reportError } from "./errors";
 
 /** Events between the main window and the windows holding a single terminal. */
 export const DETACH_READY = "detach-ready";
@@ -39,7 +40,7 @@ export function openDetachedWindow(tabId: string, title: string, at?: { x: numbe
     ...(at ? { x: Math.max(0, at.x - 60), y: Math.max(0, at.y - 20) } : {}),
     dragDropEnabled: false,
   });
-  win.once("tauri://error", (e) => console.error("detached window failed", e));
+  win.once("tauri://error", (e) => reportError("window", `detached window failed: ${JSON.stringify(e.payload)}`));
 }
 
 export function focusDetachedWindow(tabId: string): void {
