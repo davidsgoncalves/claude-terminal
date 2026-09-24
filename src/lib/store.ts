@@ -33,6 +33,28 @@ import {
 
 const newId = () => crypto.randomUUID();
 
+const CLOSED_TABS_MAX = 20;
+
+/** What is needed to bring a closed tab back. */
+interface ClosedTab {
+  groupId: string;
+  cwd: string | null;
+  claudeSessionId: string | null;
+  title: string;
+  customTitle: boolean;
+}
+
+function rememberClosed(list: ClosedTab[], tabs: Tab[]): ClosedTab[] {
+  const added = tabs.map(({ groupId, cwd, claudeSessionId, title, customTitle }) => ({
+    groupId,
+    cwd,
+    claudeSessionId,
+    title,
+    customTitle,
+  }));
+  return [...list, ...added].slice(-CLOSED_TABS_MAX);
+}
+
 export type Modal =
   | null
   | { kind: "settings" }
@@ -88,6 +110,8 @@ interface Store {
   questions: QuestionItem[];
   /** Tabs whose terminal is shown in a window of its own. */
   detached: string[];
+  /** Recently closed tabs, newest last, for Cmd+Shift+T. */
+  closedTabs: ClosedTab[];
   /** Git state of each tab's folder; absent outside a repository. */
   gitByTab: Record<string, GitInfo>;
 
@@ -112,6 +136,7 @@ interface Store {
   detachTab: (id: string, at?: { x: number; y: number }) => void;
   reattachTab: (id: string) => void;
   setGitInfo: (id: string, info: GitInfo | null) => void;
+  reopenClosedTab: () => void;
   patchTab: (id: string, patch: Partial<Tab>) => void;
 
   toggleSidebar: () => void;
@@ -178,6 +203,7 @@ export const useStore = create<Store>()(
       questions: [],
       detached: [],
       gitByTab: {},
+      closedTabs: [],
 
       addGroup: (name, folderId = null) => {
         const id = newId();
@@ -277,7 +303,9 @@ export const useStore = create<Store>()(
           const detached = s.detached.filter((d) => d !== id);
           const activeTabId =
             s.activeTabId === id ? (tabs.find((t) => t.state !== "dormant") ?? tabs[0])?.id ?? null : s.activeTabId;
-          return { tabs, activeTabId, panes, statusByTab, permissions, questions, alerted, detached };
+          const closed = s.tabs.find((t) => t.id === id);
+          const closedTabs = closed ? rememberClosed(s.closedTabs, [closed]) : s.closedTabs;
+          return { tabs, activeTabId, panes, statusByTab, permissions, questions, alerted, detached, closedTabs };
         }),
       activateTab: (id) => {
         if (get().detached.includes(id)) return focusDetachedWindow(id);
@@ -327,6 +355,23 @@ export const useStore = create<Store>()(
         set((s) => ({ detached: s.detached.filter((d) => d !== id) }));
         const tab = get().tabs.find((t) => t.id === id);
         if (tab && tab.state !== "dormant") get().activateTab(id);
+      },
+      reopenClosedTab: () => {
+        const s = get();
+        const last = s.closedTabs[s.closedTabs.length - 1];
+        if (!last) return;
+        set({ closedTabs: s.closedTabs.slice(0, -1) });
+        // The group may have been removed since; the tab then lands ungrouped.
+        const kept = s.groups.some((g) => g.id === last.groupId);
+        if (!kept) ensureUngrouped();
+        const groupId = kept ? last.groupId : UNGROUPED_ID;
+        const id = get().addTab(groupId, {
+          cwd: last.cwd,
+          claudeSessionId: last.claudeSessionId ?? undefined,
+          title: last.title,
+          customTitle: last.customTitle,
+        });
+        if (last.claudeSessionId) markPendingResume([id]);
       },
       setGitInfo: (id, info) =>
         set((s) => {
@@ -417,6 +462,7 @@ export const useStore = create<Store>()(
             questions: s.questions.filter((q) => !q.tab_id || !doomed.has(q.tab_id)),
             alerted: s.alerted.filter((a) => !doomed.has(a)),
             detached: s.detached.filter((d) => !doomed.has(d)),
+            closedTabs: rememberClosed(s.closedTabs, s.tabs.filter((t) => doomed.has(t.id))),
             activeTabId: doomed.has(s.activeTabId ?? "") ? (tabs[0]?.id ?? null) : s.activeTabId,
           };
         }),

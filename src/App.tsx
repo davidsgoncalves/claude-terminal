@@ -198,6 +198,7 @@ function useShortcuts() {
 
       const handled = (() => {
         if (key === "t" && !e.shiftKey) return void openSessionInGroup(defaultGroupId());
+        if (key === "t" && e.shiftKey) return void s.reopenClosedTab();
         if (key === "w" && !e.shiftKey) return void (s.activeTabId && s.closeTab(s.activeTabId));
         if (key === "p" && !e.shiftKey) return void s.openModal(s.modal?.kind === "switcher" ? null : { kind: "switcher" });
         if (key === "b") return void s.toggleSidebar();
