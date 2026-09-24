@@ -30,6 +30,48 @@ struct PtyExit {
     id: String,
 }
 
+/// The shell each tab runs: the user's login shell on Unix, PowerShell on Windows.
+fn shell_command() -> CommandBuilder {
+    if cfg!(windows) {
+        let mut cmd = CommandBuilder::new("powershell.exe");
+        cmd.arg("-NoLogo");
+        return cmd;
+    }
+    let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/zsh".into());
+    let mut cmd = CommandBuilder::new(&shell);
+    cmd.arg("-l");
+    cmd
+}
+
+/// Line typed into a new tab so every `claude` there carries the app's
+/// settings and a per-tab MCP config. On Unix it points at the shim; on
+/// Windows it is a PowerShell function doing the same thing, since there is
+/// no shim script to run there.
+fn claude_function() -> Option<String> {
+    #[cfg(windows)]
+    {
+        let settings = crate::hooks::settings_path()?;
+        let settings = settings.to_string_lossy().replace('\'', "''");
+        let port = crate::hooks::PORT;
+        Some(format!(
+            "function claude {{ $t = $env:CLAUDE_TERMINAL_TAB_ID; \
+             $m = Join-Path $env:TEMP \"shellhive-mcp-$t.json\"; \
+             '{{\"mcpServers\":{{\"shellhive\":{{\"type\":\"http\",\"url\":\"http://127.0.0.1:{port}/mcp\",\"headers\":{{\"X-Tab-Id\":\"' + $t + '\"}}}}}}}}' | Set-Content -Encoding ascii $m; \
+             $real = (Get-Command claude -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1).Source; \
+             if (-not $real) {{ Write-Error 'claude nao encontrado no PATH'; return }}; \
+             & $real --settings '{settings}' --mcp-config $m @args }}; Clear-Host\r"
+        ))
+    }
+    #[cfg(not(windows))]
+    {
+        let shim = crate::hooks::shim_dir()?.join("claude");
+        let quoted = format!("'{}'", shim.to_string_lossy().replace('\'', "'\\''"));
+        Some(format!(
+            "claude() {{ {quoted} \"$@\"; }}; hash -r 2>/dev/null; clear\n"
+        ))
+    }
+}
+
 #[tauri::command]
 pub fn pty_spawn(
     app: AppHandle,
@@ -52,9 +94,7 @@ pub fn pty_spawn(
         })
         .map_err(|e| e.to_string())?;
 
-    let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/zsh".into());
-    let mut cmd = CommandBuilder::new(&shell);
-    cmd.arg("-l");
+    let mut cmd = shell_command();
 
     // If the app itself was launched from inside a Claude Code session, its
     // session markers leak into every tab. A `claude` started here would then
@@ -78,8 +118,11 @@ pub fn pty_spawn(
 
     // Put the `claude` shim ahead of the real binary for this shell.
     if let Some(bin) = crate::hooks::shim_dir() {
-        let current = std::env::var("PATH").unwrap_or_default();
-        cmd.env("PATH", format!("{}:{}", bin.to_string_lossy(), current));
+        let current = std::env::var_os("PATH").unwrap_or_default();
+        let paths = std::iter::once(bin).chain(std::env::split_paths(&current));
+        if let Ok(joined) = std::env::join_paths(paths) {
+            cmd.env("PATH", joined);
+        }
     }
 
     cmd.env("TERM", "xterm-256color");
@@ -101,9 +144,7 @@ pub fn pty_spawn(
     // A PATH entry alone is not enough: the shell's startup files can reorder
     // PATH and zsh caches command lookups. A function is resolved before both,
     // so every `claude` typed in this tab reaches the shim.
-    if let Some(shim) = crate::hooks::shim_dir().map(|d| d.join("claude")) {
-        let quoted = format!("'{}'", shim.to_string_lossy().replace('\'', "'\\''"));
-        let init = format!("claude() {{ {quoted} \"$@\"; }}; hash -r 2>/dev/null; clear\n");
+    if let Some(init) = claude_function() {
         let _ = writer.write_all(init.as_bytes());
         let _ = writer.flush();
     }

@@ -12,7 +12,7 @@ export const serializers = new Map<string, SerializeAddon>();
 export const searches = new Map<string, SearchAddon>();
 
 export const TERMINAL_OPTIONS: ITerminalOptions = {
-  fontFamily: "Menlo, Monaco, 'Courier New', monospace",
+  fontFamily: "Menlo, Monaco, 'Cascadia Mono', Consolas, 'DejaVu Sans Mono', 'Courier New', monospace",
   fontSize: 13,
   cursorBlink: true,
   allowProposedApi: true,

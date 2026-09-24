@@ -1,5 +1,4 @@
 use std::fs;
-use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::thread;
@@ -12,6 +11,9 @@ use crate::db::Db;
 use crate::permissions::{Permissions, DECISION_TIMEOUT};
 
 pub const PORT: u16 = 47831;
+
+/// What SessionStart tells Claude about running inside this app.
+pub const SESSION_CONTEXT: &str = r#"{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Voce esta rodando dentro do Shellhive, um terminal com abas agrupadas feito para o Claude Code. Ele expoe o servidor MCP 'shellhive'. Use a ferramenta open_editor sempre que precisar que o usuario escreva, preencha ou revise um texto: ela abre um editor em painel logo abaixo do terminal e devolve o texto final, e salva o arquivo quando voce passa 'path'. Prefira open_editor a pedir para o usuario abrir VSCode ou outro editor externo. Quando precisar que o usuario rode um comando de shell ele mesmo, chame suggest_command em vez de pedir para ele digitar ! comando: o comando vira um botao que roda nesta sessao."}}"#;
 
 /// Events forwarded for state only. PermissionRequest is handled separately
 /// because its hook blocks waiting for a decision.
@@ -265,7 +267,37 @@ fn shell_single_quote(s: &str) -> String {
 
 fn write_executable(path: &PathBuf, content: String) -> Result<(), String> {
     fs::write(path, content).map_err(|e| e.to_string())?;
-    fs::set_permissions(path, fs::Permissions::from_mode(0o755)).map_err(|e| e.to_string())
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(path, fs::Permissions::from_mode(0o755)).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+/// Command Claude Code runs for one hook. Unix gets the shell script; Windows,
+/// which has no `sh` or `curl` to count on, runs this app's own executable in
+/// hook mode (see hookclient.rs), with forward slashes so Git Bash and cmd
+/// both read the path the same way.
+fn hook_command(kind: &str, script: &std::path::Path) -> String {
+    if cfg!(windows) {
+        let exe = std::env::current_exe().unwrap_or_default();
+        return format!(
+            "\"{}\" --hook {kind}",
+            exe.to_string_lossy().replace('\\', "/")
+        );
+    }
+    shell_single_quote(&script.to_string_lossy())
+}
+
+/// The settings file every `claude` in a tab is launched with.
+#[cfg(windows)]
+pub fn settings_path() -> Option<PathBuf> {
+    Some(
+        dirs::config_dir()?
+            .join("claude-terminal")
+            .join("hooks.json"),
+    )
 }
 
 /// Directory holding the `claude` shim, prepended to each tab's PATH so any
@@ -335,7 +367,7 @@ pub fn write_scripts() -> Result<HookSetup, String> {
              \x20 -H \"X-Tab-Id: ${{CLAUDE_TERMINAL_TAB_ID:-}}\" \\\n\
              \x20 --data-binary @- \"http://127.0.0.1:{PORT}/hook\" >/dev/null 2>&1 || true\n\
              cat <<'JSON'\n\
-             {{\"hookSpecificOutput\":{{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Voce esta rodando dentro do Shellhive, um terminal com abas agrupadas feito para o Claude Code. Ele expoe o servidor MCP 'shellhive'. Use a ferramenta open_editor sempre que precisar que o usuario escreva, preencha ou revise um texto: ela abre um editor em painel logo abaixo do terminal e devolve o texto final, e salva o arquivo quando voce passa 'path'. Prefira open_editor a pedir para o usuario abrir VSCode ou outro editor externo. Quando precisar que o usuario rode um comando de shell ele mesmo, chame suggest_command em vez de pedir para ele digitar ! comando: o comando vira um botao que roda nesta sessao.\"}}}}\n\
+             {SESSION_CONTEXT}\n\
              JSON\n\
              exit 0\n"
         ),
@@ -363,21 +395,21 @@ pub fn write_scripts() -> Result<HookSetup, String> {
         ),
     )?;
 
-    let hook_command = shell_single_quote(&forward_sh.to_string_lossy());
+    let forward_command = hook_command("forward", &forward_sh);
     let mut hooks = serde_json::Map::new();
     hooks.insert(
         "SessionStart".to_string(),
         serde_json::json!([{
             "hooks": [{
                 "type": "command",
-                "command": shell_single_quote(&session_start_sh.to_string_lossy()),
+                "command": hook_command("session-start", &session_start_sh),
             }]
         }]),
     );
     for event in HOOK_EVENTS {
         hooks.insert(
             event.to_string(),
-            serde_json::json!([{ "hooks": [{ "type": "command", "command": hook_command }] }]),
+            serde_json::json!([{ "hooks": [{ "type": "command", "command": forward_command }] }]),
         );
     }
     hooks.insert(
@@ -385,7 +417,7 @@ pub fn write_scripts() -> Result<HookSetup, String> {
         serde_json::json!([{
             "hooks": [{
                 "type": "command",
-                "command": shell_single_quote(&permission_sh.to_string_lossy()),
+                "command": hook_command("permission", &permission_sh),
                 "timeout": curl_timeout + 10,
             }]
         }]),
@@ -404,7 +436,7 @@ pub fn write_scripts() -> Result<HookSetup, String> {
         "hooks": hooks,
         "statusLine": {
             "type": "command",
-            "command": shell_single_quote(&statusline_sh.to_string_lossy()),
+            "command": hook_command("statusline", &statusline_sh),
         }
     });
     fs::write(

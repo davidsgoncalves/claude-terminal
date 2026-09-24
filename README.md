@@ -60,6 +60,15 @@ está danificado, remova a marca e abra normalmente:
 xattr -dr com.apple.quarantine "/Applications/Shellhive.app"
 ```
 
+### Windows
+
+O build nativo para Windows ainda é experimental e fica fora das releases até
+ser testado numa máquina real. Cada execução do workflow `windows` no GitHub
+Actions gera o instalador (`.exe`) como artefato para baixar e testar. As abas
+abrem no PowerShell, e os hooks do Claude Code rodam pelo próprio executável
+do app em vez de scripts de shell. O Windows mostra o aviso do SmartScreen,
+porque o instalador não é assinado.
+
 ### Windows com WSL
 
 O Shellhive roda dentro do WSL como um app Linux, com a janela aberta pelo
