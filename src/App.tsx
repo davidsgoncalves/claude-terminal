@@ -33,6 +33,7 @@ import {
 import { notify } from "./lib/notify";
 import { describeTool } from "./lib/describe";
 import { ruleAllows } from "./lib/permRules";
+import { nextSubagents } from "./lib/subagents";
 import { actionOf, tabNumberOf } from "./lib/shortcuts";
 import { syncTabTitle } from "./lib/titles";
 import {
@@ -97,6 +98,7 @@ function useBackendBridge() {
     listen<{ id: string }>("pty-exit", (ev) => {
       const tab = store().tabs.find((t) => t.id === ev.payload.id);
       if (tab) store().patchTab(tab.id, { state: "dormant", pendingMessage: null });
+      if (tab) store().setSubagents(tab.id, []);
     }).then((u) => unlisteners.push(u));
 
     listen<StatusEnvelope>("statusline-event", (ev) => {
@@ -109,6 +111,7 @@ function useBackendBridge() {
       if (!e.tab_id) return;
       const tab = store().tabs.find((t) => t.id === e.tab_id);
       if (!tab) return;
+      store().setSubagents(tab.id, nextSubagents(store().subagentsByTab[tab.id] ?? [], e));
       const patch = tabPatchFor(tab, e);
       if (!patch) return;
       store().patchTab(tab.id, patch);

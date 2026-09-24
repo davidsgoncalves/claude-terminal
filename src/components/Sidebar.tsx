@@ -2,7 +2,7 @@ import { useState, type DragEvent } from "react";
 import { openSessionInGroup, useStore } from "../lib/store";
 import { droppedOutside } from "../lib/detach";
 import { HiddenGroups } from "./HiddenGroups";
-import { STATE_LABEL, type GitInfo, type Group, type StatusPayload, type Tab } from "../lib/types";
+import { STATE_LABEL, type GitInfo, type Group, type StatusPayload, type Subagent, type Tab } from "../lib/types";
 import { shortcutLabel } from "../lib/shortcuts";
 
 function ctxClass(pct: number): string {
@@ -73,6 +73,25 @@ function InlineName({ value, onCommit, className }: { value: string; onCommit: (
   );
 }
 
+const SUBAGENT_LINES = 3;
+
+/** Subagents the session is running, under the tab's name. */
+function SubagentLines({ agents }: { agents: Subagent[] }) {
+  const extra = agents.length - SUBAGENT_LINES;
+  return (
+    <span className="tab-agents">
+      {agents.slice(0, SUBAGENT_LINES).map((a) => (
+        <span key={a.id} className="tab-agent" title={a.type ? `${a.type}: ${a.description}` : a.description}>
+          <span className="agent-mark">⑂</span>
+          {a.type && <span className="agent-type">{a.type}</span>}
+          <span className="agent-desc">{a.description}</span>
+        </span>
+      ))}
+      {extra > 0 && <span className="tab-agent more">+{extra} subagente(s)</span>}
+    </span>
+  );
+}
+
 /** Branch and pending changes under a tab's name. */
 function GitLine({ git }: { git: GitInfo }) {
   const dirty = git.files > 0;
@@ -99,6 +118,7 @@ function TabRow({ tab, active }: { tab: Tab; active: boolean }) {
   const stale = useStore((s) => s.alerted.includes(tab.id));
   const wrap = useStore((s) => s.tabTitleWrap === "wrap");
   const git = useStore((s) => s.gitByTab[tab.id]);
+  const agents = useStore((s) => s.subagentsByTab[tab.id]);
   return (
     <li
       className={`tab-row state-${tab.state} ${active ? "active" : ""} ${stale ? "stale" : ""} ${wrap ? "wrap" : ""}`}
@@ -119,6 +139,7 @@ function TabRow({ tab, active }: { tab: Tab; active: boolean }) {
       <span className="tab-main">
         <InlineName value={tab.title} onCommit={(v) => renameTab(tab.id, v)} className="tab-title" />
         {git && <GitLine git={git} />}
+        {agents && agents.length > 0 && <SubagentLines agents={agents} />}
       </span>
       <span className="tab-trailing">
         {isDetached && (

@@ -14,6 +14,7 @@ import {
   type Folder,
   type GitInfo,
   type SavedPrompt,
+  type Subagent,
   type Group,
   type HookEvent,
   type HookSetup,
@@ -117,6 +118,8 @@ interface Store {
   questions: QuestionItem[];
   /** Tabs whose terminal is shown in a window of its own. */
   detached: string[];
+  /** Subagents running in each tab, not persisted. */
+  subagentsByTab: Record<string, Subagent[]>;
   /** Tab whose Cmd+F bar is open. */
   searchTabId: string | null;
   /** Prompts kept for reuse. */
@@ -149,6 +152,7 @@ interface Store {
   setGitInfo: (id: string, info: GitInfo | null) => void;
   reopenClosedTab: () => void;
   openSearch: (tabId: string | null) => void;
+  setSubagents: (tabId: string, list: Subagent[]) => void;
   addPrompt: (name: string, text: string) => void;
   updatePrompt: (id: string, patch: Partial<Omit<SavedPrompt, "id">>) => void;
   removePrompt: (id: string) => void;
@@ -223,6 +227,7 @@ export const useStore = create<Store>()(
       closedTabs: [],
       prompts: [],
       searchTabId: null,
+      subagentsByTab: {},
 
       addGroup: (name, folderId = null) => {
         const id = newId();
@@ -318,13 +323,25 @@ export const useStore = create<Store>()(
           const permissions = s.permissions.filter((p) => p.tab_id !== id);
           const questions = s.questions.filter((q) => q.tab_id !== id);
           const alerted = s.alerted.filter((a) => a !== id);
+          const { [id]: _agents, ...subagentsByTab } = s.subagentsByTab;
           if (s.detached.includes(id)) closeDetachedWindow(id);
           const detached = s.detached.filter((d) => d !== id);
           const activeTabId =
             s.activeTabId === id ? (tabs.find((t) => t.state !== "dormant") ?? tabs[0])?.id ?? null : s.activeTabId;
           const closed = s.tabs.find((t) => t.id === id);
           const closedTabs = closed ? rememberClosed(s.closedTabs, [closed]) : s.closedTabs;
-          return { tabs, activeTabId, panes, statusByTab, permissions, questions, alerted, detached, closedTabs };
+          return {
+            tabs,
+            activeTabId,
+            panes,
+            statusByTab,
+            permissions,
+            questions,
+            alerted,
+            detached,
+            closedTabs,
+            subagentsByTab,
+          };
         }),
       activateTab: (id) => {
         if (get().detached.includes(id)) return focusDetachedWindow(id);
@@ -380,6 +397,13 @@ export const useStore = create<Store>()(
         set((s) => ({ prompts: s.prompts.map((p) => (p.id === id ? { ...p, ...patch } : p)) })),
       removePrompt: (id) => set((s) => ({ prompts: s.prompts.filter((p) => p.id !== id) })),
       openSearch: (searchTabId) => set({ searchTabId }),
+      setSubagents: (tabId, list) =>
+        set((s) => {
+          const prev = s.subagentsByTab[tabId] ?? [];
+          if (prev === list || (prev.length === 0 && list.length === 0)) return s;
+          const { [tabId]: _dropped, ...rest } = s.subagentsByTab;
+          return { subagentsByTab: list.length ? { ...rest, [tabId]: list } : rest };
+        }),
       reopenClosedTab: () => {
         const s = get();
         const last = s.closedTabs[s.closedTabs.length - 1];
