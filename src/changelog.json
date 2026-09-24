@@ -3,6 +3,8 @@
     "version": "0.1.14",
     "date": "2026-09-24",
     "items": [
+      "Cada aba mostra os subagentes que a sessão está rodando, com o tipo e a descrição.",
+      "Mini painel flutuante, sempre por cima das outras janelas, com o estado de cada sessão. Liga em Aparência ou com {miniPanel}.",
       "O logo do Shellhive aparece ao lado do nome na barra de limites.",
       "O pacote .deb informa o nome de quem o mantém."
     ]

@@ -18,7 +18,8 @@ export type Action =
   | "search"
   | "clear"
   | "nextTab"
-  | "prevTab";
+  | "prevTab"
+  | "miniPanel";
 
 interface Combo {
   code: string;
@@ -44,6 +45,7 @@ const MAC: Record<Action, Combo> = {
   clear: cmd("KeyK"),
   nextTab: cmd("BracketRight", true),
   prevTab: cmd("BracketLeft", true),
+  miniPanel: cmd("KeyM", true),
 };
 
 const LINUX: Record<Action, Combo> = {
@@ -59,6 +61,7 @@ const LINUX: Record<Action, Combo> = {
   clear: ctrlShift("KeyK"),
   nextTab: { code: "PageDown", ctrl: true },
   prevTab: { code: "PageUp", ctrl: true },
+  miniPanel: ctrlShift("KeyM"),
 };
 
 const TABLE = IS_MAC ? MAC : LINUX;

@@ -4,6 +4,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { fileStorage } from "./persist";
 import { markPendingResume } from "./restored";
 import { sameRule } from "./permRules";
+import type { MiniBounds } from "./mini";
 import { closeDetachedWindow, focusDetachedWindow, openDetachedWindow } from "./detach";
 import {
   GROUP_COLORS,
@@ -108,6 +109,10 @@ interface Store {
   tabTitleWrap: TitleWrap;
   /** Background tint of each group in the tab list. */
   groupTint: GroupTint;
+  /** Whether the floating mini panel is shown. */
+  miniPanel: boolean;
+  /** Where the mini panel was last left, in logical pixels. */
+  miniBounds: MiniBounds | null;
   /** How the terminal area is divided. */
   splitMode: SplitMode;
   /** Tab shown in each pane, by slot. */
@@ -183,6 +188,8 @@ interface Store {
   setTerminalBorder: (px: number) => void;
   setTabTitleWrap: (w: TitleWrap) => void;
   setGroupTint: (t: GroupTint) => void;
+  setMiniPanel: (on: boolean) => void;
+  setMiniBounds: (b: MiniBounds) => void;
   setSplitMode: (m: SplitMode) => void;
   focusPane: (index: number) => void;
   openTabMenu: (m: { x: number; y: number; tabId: string } | null) => void;
@@ -218,6 +225,8 @@ export const useStore = create<Store>()(
       terminalBorder: 1,
       tabTitleWrap: "wrap",
       groupTint: "subtle",
+      miniPanel: false,
+      miniBounds: null,
       splitMode: "single",
       panes: [null, null, null, null],
       focusedPane: 0,
@@ -517,6 +526,8 @@ export const useStore = create<Store>()(
       setTerminalBorder: (terminalBorder) => set({ terminalBorder }),
       setTabTitleWrap: (tabTitleWrap) => set({ tabTitleWrap }),
       setGroupTint: (groupTint) => set({ groupTint }),
+      setMiniPanel: (miniPanel) => set({ miniPanel }),
+      setMiniBounds: (miniBounds) => set({ miniBounds }),
       setSplitMode: (splitMode) =>
         set((s) => {
           // Fill any pane the new layout exposes with a tab not already shown.
@@ -608,6 +619,8 @@ export const useStore = create<Store>()(
         terminalBorder: s.terminalBorder,
         tabTitleWrap: s.tabTitleWrap,
         groupTint: s.groupTint,
+        miniPanel: s.miniPanel,
+        miniBounds: s.miniBounds,
         prompts: s.prompts,
         splitMode: s.splitMode,
         panes: s.panes,

@@ -34,6 +34,18 @@ import { notify } from "./lib/notify";
 import { describeTool } from "./lib/describe";
 import { ruleAllows } from "./lib/permRules";
 import { nextSubagents } from "./lib/subagents";
+import {
+  MINI_ACTIVATE,
+  MINI_BOUNDS,
+  MINI_CLOSED,
+  MINI_LABEL,
+  MINI_READY,
+  MINI_STATE,
+  closeMiniWindow,
+  openMiniWindow,
+  type MiniBounds,
+  type MiniRow,
+} from "./lib/mini";
 import { actionOf, tabNumberOf } from "./lib/shortcuts";
 import { syncTabTitle } from "./lib/titles";
 import {
@@ -229,6 +241,8 @@ function useShortcuts() {
           return s.toggleEvents();
         case "settings":
           return s.openModal({ kind: "settings" });
+        case "miniPanel":
+          return s.setMiniPanel(!s.miniPanel);
         case "nextTab":
         case "prevTab": {
           if (live.length < 2) return;
@@ -322,6 +336,71 @@ function useGitPoll() {
   }, []);
 }
 
+const MINI_THROTTLE_MS = 250;
+
+function miniRows(): MiniRow[] {
+  const s = useStore.getState();
+  return s.tabs
+    .filter((t) => t.state !== "dormant")
+    .map((t) => {
+      const group = s.groups.find((g) => g.id === t.groupId);
+      return {
+        id: t.id,
+        title: t.title,
+        state: t.state,
+        color: group?.color ?? "transparent",
+        group: group?.name ?? "",
+        agents: s.subagentsByTab[t.id]?.length ?? 0,
+      };
+    });
+}
+
+/** Opens, feeds and answers the floating mini panel while it is switched on. */
+function useMiniPanel() {
+  const on = useStore((s) => s.miniPanel);
+
+  useEffect(() => {
+    if (!on) {
+      closeMiniWindow();
+      return;
+    }
+    openMiniWindow(useStore.getState().miniBounds);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let last = "";
+    const send = () => {
+      const rows = miniRows();
+      const json = JSON.stringify(rows);
+      if (json === last) return;
+      last = json;
+      void emitTo(MINI_LABEL, MINI_STATE, rows);
+    };
+    const sendSoon = () => {
+      clearTimeout(timer);
+      timer = setTimeout(send, MINI_THROTTLE_MS);
+    };
+    const unsub = useStore.subscribe(sendSoon);
+    const subs = [
+      listen(MINI_READY, () => {
+        last = "";
+        send();
+      }),
+      listen<{ id: string }>(MINI_ACTIVATE, (ev) => {
+        const main = getCurrentWebviewWindow();
+        void main.unminimize().then(() => main.show()).then(() => main.setFocus());
+        useStore.getState().activateTab(ev.payload.id);
+      }),
+      listen(MINI_CLOSED, () => useStore.getState().setMiniPanel(false)),
+      listen<MiniBounds>(MINI_BOUNDS, (ev) => useStore.getState().setMiniBounds(ev.payload)),
+      getCurrentWebviewWindow().onCloseRequested(() => closeMiniWindow()),
+    ];
+    return () => {
+      clearTimeout(timer);
+      unsub();
+      subs.forEach((p) => void p.then((u) => u()));
+    };
+  }, [on]);
+}
+
 function useEditorRequests(): [EditorRequest | null, () => void] {
   const [request, setRequest] = useState<EditorRequest | null>(null);
   useEffect(() => {
@@ -341,6 +420,7 @@ function App() {
   useShortcuts();
   useDetachedWindows();
   useGitPoll();
+  useMiniPanel();
   const tabs = useStore((s) => s.tabs);
 
   useEffect(() => {
