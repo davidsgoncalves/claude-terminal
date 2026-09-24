@@ -7,7 +7,8 @@
       "A lista de sessões gravadas, à direita, agora se chama Histórico.",
       "Fechar a janela principal encerra o app de vez, sem deixar o processo aberto no Linux.",
       "A aba Eventos saiu do painel da direita e volta ligando Mostrar eventos em Sobre, para diagnóstico.",
-      "A moldura do terminal pulsa enquanto a sessão espera uma ação sua: permissão, pergunta ou comando."
+      "A moldura do terminal pulsa enquanto a sessão espera uma ação sua: permissão, pergunta ou comando.",
+      "O editor em painel e os comandos sugeridos passam a aparecer no terminal da aba certa."
     ]
   },
   {
