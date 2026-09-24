@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.1.21",
+    "date": "2026-09-24",
+    "items": [
+      "Um comando sugerido pode ser executado mesmo com o Claude trabalhando: ele fica agendado e roda assim que a resposta termina."
+    ]
+  },
+  {
     "version": "0.1.20",
     "date": "2026-09-24",
     "items": [

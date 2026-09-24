@@ -851,3 +851,4 @@ button.star.on { color: var(--accent); }
 @media (prefers-reduced-motion: reduce) {
   .term-pane.attention::after { animation: none; border-color: var(--c-permission); }
 }
+.command-queued { margin: 6px 0 0; font-size: 11px; color: var(--c-permission); }
