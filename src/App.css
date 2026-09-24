@@ -31,7 +31,12 @@ html, body, #root {
 /* ---------- main ---------- */
 .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .terminals { flex: 1; min-height: 0; position: relative; padding: 4px; }
-.term-pane .xterm { height: 100%; }
+/* The fit addon measures the pane's full box and only subtracts the padding
+   of xterm's own element, so spacing lives there and the frame is an
+   overlay; padding or a border on the pane would hide the last row. */
+.term-pane .xterm, .detached-term .xterm { height: 100%; }
+.term-pane .xterm { padding: 12px 0 6px 6px; }
+.detached-term .xterm { padding: 4px; }
 .term-pane .xterm-viewport { background-color: var(--bg) !important; }
 .term-pane .xterm-viewport::-webkit-scrollbar { width: 6px; }
 .term-pane .xterm-viewport::-webkit-scrollbar-track { background: var(--bg); }
@@ -359,17 +364,20 @@ button.star.on { color: var(--accent); }
 /* Panes are absolutely placed so a terminal never remounts when the split
    changes, which would kill its shell. */
 .term-pane {
-  position: absolute; padding: 12px 0 6px 6px; background: var(--bg);
-  border: var(--terminal-border, 1px) solid color-mix(in srgb, var(--group-color) 22%, transparent);
-  border-radius: 6px; overflow: hidden; transition: border-color .15s ease;
+  position: absolute; background: var(--bg); border-radius: 6px; overflow: hidden;
 }
-.term-pane.focused {
+.term-pane::after {
+  content: ""; position: absolute; inset: 0; z-index: 5; pointer-events: none; border-radius: inherit;
+  border: var(--terminal-border, 1px) solid color-mix(in srgb, var(--group-color) 22%, transparent);
+  transition: border-color .15s ease;
+}
+.term-pane.focused::after {
   border-color: color-mix(in srgb, var(--group-color) 70%, transparent);
 }
 /* A strip of the group colour, so an unfocused pane still shows where it
    belongs. Drawn as a pseudo-element to stay out of xterm's own DOM. */
 .term-pane::before {
-  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px; pointer-events: none;
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px; pointer-events: none; z-index: 5;
   background: color-mix(in srgb, var(--group-color) 55%, transparent);
   transition: background .15s ease;
 }
@@ -662,7 +670,7 @@ button.star.on { color: var(--accent); }
   padding: 2px 8px; font-size: 11px; cursor: pointer; flex-shrink: 0;
 }
 .detached-back:hover { border-color: var(--accent); }
-.detached-term { flex: 1; min-height: 0; padding: 4px; }
+.detached-term { flex: 1; min-height: 0; }
 
 /* ---------- hidden groups ---------- */
 .hidden-groups { position: relative; flex-shrink: 0; }
