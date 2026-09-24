@@ -49,6 +49,16 @@ export type Layout = "sidebar" | "topbar";
 /** Which edge of the window holds the limits and split bar. */
 export type BarPosition = "top" | "bottom";
 
+/** A subagent a tab's Claude session started and has not finished. */
+export interface Subagent {
+  /** Tool use id of the call that started it. */
+  id: string;
+  description: string;
+  type: string | null;
+  background: boolean;
+  startedAt: number;
+}
+
 /** A prompt kept for reuse, inserted with Cmd+Shift+P. */
 export interface SavedPrompt {
   id: string;
