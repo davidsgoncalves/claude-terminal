@@ -39,8 +39,43 @@ jobs:
             echo "release=true" >> "$GITHUB_OUTPUT"
           fi
 
-  build:
+  # The release stays a draft until the manifest job publishes it, so apps
+  # checking for updates never see a release without its latest.json.
+  create-release:
     needs: decide
+    if: needs.decide.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      id: ${{ steps.create.outputs.id }}
+    steps:
+      - id: create
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: v${{ needs.decide.outputs.version }}
+        run: |
+          # A failed run leaves its draft behind; start from a clean one.
+          for old in $(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=50" --jq ".[] | select(.draft and .tag_name == \"$TAG\") | .id"); do
+            gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$old"
+          done
+          id=$(gh api -X POST "repos/$GITHUB_REPOSITORY/releases" \
+            -f tag_name="$TAG" \
+            -f target_commitish="$GITHUB_SHA" \
+            -f name="Shellhive $TAG" \
+            -F draft=true \
+            -f body="$(cat <<'BODY'
+          Qual arquivo baixar:
+          - Mac com chip Apple (M1 ou mais novo): `macOS-Apple-Silicon.dmg`
+          - Mac com processador Intel: `macOS-Intel.dmg`
+          - Linux (qualquer distribuição): `Linux.AppImage`
+          - Debian ou Ubuntu: `Linux-Debian-Ubuntu.deb`
+
+          Os arquivos `_atualizacao` e `.sig` são usados pela atualização automática e não precisam ser baixados. O app se atualiza sozinho a partir daqui.
+          BODY
+          )" --jq .id)
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: [decide, create-release]
     if: needs.decide.outputs.release == 'true'
     strategy:
       fail-fast: false
@@ -98,34 +133,25 @@ jobs:
           # from the internet is reported as damaged instead of unidentified.
           APPLE_SIGNING_IDENTITY: ${{ startsWith(matrix.platform, 'macos') && '-' || '' }}
         with:
-          tagName: v${{ needs.decide.outputs.version }}
-          releaseName: "Shellhive v${{ needs.decide.outputs.version }}"
-          releaseBody: |
-            Qual arquivo baixar:
-            - Mac com chip Apple (M1 ou mais novo): `macOS-Apple-Silicon.dmg`
-            - Mac com processador Intel: `macOS-Intel.dmg`
-            - Linux (qualquer distribuição): `Linux.AppImage`
-            - Debian ou Ubuntu: `Linux-Debian-Ubuntu.deb`
-
-            Os arquivos `_atualizacao` e `.sig` são usados pela atualização automática e não precisam ser baixados. O app se atualiza sozinho a partir daqui.
-          releaseDraft: false
-          prerelease: false
+          releaseId: ${{ needs.create-release.outputs.id }}
           # Composed once by the manifest job; parallel jobs overwrote each other.
           includeUpdaterJson: false
           args: ${{ matrix.args }}
 
   manifest:
-    needs: [decide, build]
+    needs: [decide, create-release, build]
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TAG: v${{ needs.decide.outputs.version }}
+      RELEASE_ID: ${{ needs.create-release.outputs.id }}
     steps:
       - uses: actions/checkout@v4
       - name: Give the assets readable names
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: v${{ needs.decide.outputs.version }}
         run: node .github/scripts/rename-assets.mjs
       - name: Compose the updater manifest
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: v${{ needs.decide.outputs.version }}
         run: node .github/scripts/manifest.mjs
+      # Publishing creates the tag and makes this the latest release, now that
+      # every file the updater needs is in place.
+      - name: Publish the release
+        run: gh api -X PATCH "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" -F draft=false -f make_latest=true --silent

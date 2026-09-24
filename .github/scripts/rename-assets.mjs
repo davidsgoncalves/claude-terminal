@@ -5,8 +5,10 @@ import { execFileSync } from "node:child_process";
 
 const tag = process.env.TAG;
 const repo = process.env.GITHUB_REPOSITORY;
-if (!tag || !repo) {
-  console.error("TAG and GITHUB_REPOSITORY are required");
+// By id: the release is still a draft, which lookups by tag do not find.
+const releaseId = process.env.RELEASE_ID;
+if (!tag || !repo || !releaseId) {
+  console.error("TAG, GITHUB_REPOSITORY and RELEASE_ID are required");
   process.exit(1);
 }
 const version = tag.replace(/^v/, "");
@@ -24,7 +26,7 @@ const RULES = [
   { match: /\.deb$/, name: `${base}_Linux-Debian-Ubuntu.deb` },
 ];
 
-const release = JSON.parse(gh(["api", `repos/${repo}/releases/tags/${tag}`]));
+const release = JSON.parse(gh(["api", `repos/${repo}/releases/${releaseId}`]));
 for (const asset of release.assets) {
   const sig = asset.name.endsWith(".sig");
   const plain = sig ? asset.name.slice(0, -4) : asset.name;
