@@ -805,3 +805,15 @@ button.star.on { color: var(--accent); }
 .agent-type { color: var(--fg); opacity: .75; flex-shrink: 0; }
 .agent-desc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .tab-agent.more { padding-left: 14px; }
+
+/* ---------- floating mini panel ---------- */
+.mini { height: 100vh; overflow-y: auto; background: var(--panel); padding: 6px; }
+.mini-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.mini-row {
+  display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 5px; cursor: pointer;
+  border-left: 3px solid var(--group-color); font-size: 12px;
+}
+.mini-row:hover { background: var(--panel-2); }
+.mini-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini-agents { font-size: 10px; color: var(--c-working); flex-shrink: 0; }
+.mini-empty { color: var(--muted); font-size: 12px; text-align: center; margin-top: 24px; }

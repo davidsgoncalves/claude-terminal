@@ -104,6 +104,7 @@ externo.
 | Mostrar ou esconder o painel da direita | `⌘E` | `Ctrl+Shift+E` |
 | Limpar a tela do terminal | `⌘K` | `Ctrl+Shift+K` |
 | Configurações | `⌘,` | `Ctrl+Shift+,` |
+| Mini painel flutuante | `⌘⇧M` | `Ctrl+Shift+M` |
 
 ## Onde ficam os dados
 

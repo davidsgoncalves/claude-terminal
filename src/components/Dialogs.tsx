@@ -209,6 +209,8 @@ function SettingsDialog({ initialTab, onClose }: { initialTab?: SettingsTab; onC
     setTabTitleWrap,
     groupTint,
     setGroupTint,
+    miniPanel,
+    setMiniPanel,
   } = useStore();
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -245,6 +247,21 @@ function SettingsDialog({ initialTab, onClose }: { initialTab?: SettingsTab; onC
           </button>
           <button className={`chip ${layout === "topbar" ? "on" : ""}`} onClick={() => setLayout("topbar")}>
             Superior
+          </button>
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <h3>Mini painel flutuante</h3>
+        <p className="hint">
+          Janela pequena, sempre por cima, com o estado de cada sessão. {shortcutLabel("miniPanel")} liga e desliga.
+        </p>
+        <div className="chip-row">
+          <button className={`chip ${miniPanel ? "on" : ""}`} onClick={() => setMiniPanel(true)}>
+            Ligado
+          </button>
+          <button className={`chip ${!miniPanel ? "on" : ""}`} onClick={() => setMiniPanel(false)}>
+            Desligado
           </button>
         </div>
       </section>
