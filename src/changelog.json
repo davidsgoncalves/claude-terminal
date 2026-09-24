@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.1.15",
+    "date": "2026-09-24",
+    "items": [
+      "O mini painel, as janelas destacadas e a janela principal voltam a fechar pelo botão, pelo atalho e pela configuração."
+    ]
+  },
+  {
     "version": "0.1.14",
     "date": "2026-09-24",
     "items": [
