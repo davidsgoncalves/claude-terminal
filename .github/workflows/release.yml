@@ -68,6 +68,7 @@ jobs:
           - Mac com processador Intel: `macOS-Intel.dmg`
           - Linux (qualquer distribuição): `Linux.AppImage`
           - Debian ou Ubuntu: `Linux-Debian-Ubuntu.deb`
+          - Windows 10 ou 11: `Windows.exe` (o Windows mostra um aviso do SmartScreen porque o instalador não é assinado; clique em "Mais informações" e depois em "Executar assim mesmo")
 
           Os arquivos `_atualizacao` e `.sig` são usados pela atualização automática e não precisam ser baixados. O app se atualiza sozinho a partir daqui.
           BODY
@@ -90,6 +91,10 @@ jobs:
           - platform: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             args: ""
+          # The bundle targets in tauri.conf.json are macOS and Linux ones.
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            args: "--bundles nsis"
 
     runs-on: ${{ matrix.platform }}
     steps:

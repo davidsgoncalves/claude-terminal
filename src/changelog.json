@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.1.20",
+    "date": "2026-09-24",
+    "items": [
+      "Instalador para Windows 10 e 11, com atualização automática. As abas abrem no PowerShell."
+    ]
+  },
+  {
     "version": "0.1.19",
     "date": "2026-09-24",
     "items": [
