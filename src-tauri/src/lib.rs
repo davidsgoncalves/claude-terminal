@@ -1,6 +1,7 @@
 mod db;
 mod files;
 mod git;
+mod hookclient;
 mod hooks;
 mod install;
 mod mcp;
@@ -10,6 +11,11 @@ mod pty;
 mod sessions;
 
 use tauri::Manager;
+
+/// Hook mode: the executable run by Claude Code in place of the hook scripts.
+pub fn hook_client(kind: &str) -> i32 {
+    hookclient::run(kind)
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
