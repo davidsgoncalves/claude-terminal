@@ -3,6 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useStore } from "../lib/store";
 import { SPLIT_MODES, type RateWindow, type TabState } from "../lib/types";
 import { shortcutLabel } from "../lib/shortcuts";
+import logo from "../assets/logo.png";
 
 /** Vite sets this only on the dev server, so a packaged build never shows it. */
 const IS_DEV = import.meta.env.DEV;
@@ -79,7 +80,10 @@ export function TopBar() {
 
   return (
     <header className={`topbar ${barPosition === "bottom" ? "at-bottom" : ""}`}>
-      <div className={`brand ${IS_DEV ? "dev" : ""}`}>{APP_NAME}</div>
+      <div className={`brand ${IS_DEV ? "dev" : ""}`}>
+        <img className="brand-logo" src={logo} alt="" />
+        {APP_NAME}
+      </div>
 
       <div className={`limits ${stale ? "stale" : ""}`} title={stale ? "Último dado há mais de 10 min" : undefined}>
         <Meter label="5h" win={rateLimits?.five_hour} now={now} />
