@@ -6,7 +6,7 @@ fn main() {
     // Claude Code runs this same executable as a hook on Windows; see hookclient.rs.
     if args.get(1).map(String::as_str) == Some("--hook") {
         let kind = args.get(2).map(String::as_str).unwrap_or("");
-        std::process::exit(claude_terminal_lib::hook_client(kind));
+        std::process::exit(shellhive_lib::hook_client(kind));
     }
-    claude_terminal_lib::run()
+    shellhive_lib::run()
 }

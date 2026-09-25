@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.1.22",
+    "date": "2026-09-25",
+    "items": [
+      "O nome interno do app também passou a ser Shellhive: o executável, a pasta de dados e o identificador. Na primeira abertura, abas, grupos e configurações são copiados da pasta antiga, que fica como backup.",
+      "No Sobre, dá para importar de novo os dados do Claude Terminal.",
+      "No macOS, o sistema pode pedir de novo a permissão de notificações."
+    ]
+  },
+  {
     "version": "0.1.21",
     "date": "2026-09-24",
     "items": [

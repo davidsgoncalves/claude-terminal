@@ -84,11 +84,10 @@ Dentro do Ubuntu do WSL, instale o `.deb`:
 
 ```bash
 sudo apt install ./Shellhive_<versão>_Linux-Debian-Ubuntu.deb
-claude-terminal &
+shellhive &
 ```
 
-O executável instalado ainda se chama `claude-terminal`, o nome interno do
-app. Ele também aparece no menu Iniciar do Windows como Shellhive, junto dos
+O app também aparece no menu Iniciar do Windows como Shellhive, junto dos
 outros apps do WSL.
 
 - **Atualizações:** o app avisa quando há versão nova e baixa o pacote, mas o
@@ -102,8 +101,8 @@ outros apps do WSL.
 ## Como ele conversa com o Claude Code
 
 Nada do seu `~/.claude/settings.json` é alterado. O app escreve os próprios
-arquivos em `~/Library/Application Support/claude-terminal` (ou
-`~/.config/claude-terminal` no Linux) e coloca um atalho `claude` no PATH de
+arquivos em `~/Library/Application Support/shellhive` (ou
+`~/.config/shellhive` no Linux) e coloca um atalho `claude` no PATH de
 cada aba, além de definir uma função de shell com o mesmo nome. Qualquer
 `claude` digitado numa aba passa por ele e ganha:
 
@@ -161,9 +160,11 @@ nos builds que carregam o DSN do projeto, passado pelo secret
 
 ## Onde ficam os dados
 
-Tudo em `~/Library/Application Support/claude-terminal` no macOS, ou
-`~/.config/claude-terminal` no Linux. As pastas mantêm o nome antigo para as
-instalações anteriores continuarem com suas abas e configurações:
+Tudo em `~/Library/Application Support/shellhive` no macOS, ou
+`~/.config/shellhive` no Linux (`%APPDATA%\shellhive` no Windows). Na primeira
+abertura depois da troca de nome, o app copia a pasta `claude-terminal` das
+versões antigas para lá e deixa a original como backup; "Importar de novo do
+Claude Terminal", no Sobre, refaz essa cópia:
 
 | Arquivo | Conteúdo |
 | --- | --- |

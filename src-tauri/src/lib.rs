@@ -30,6 +30,8 @@ pub fn run() {
         .manage(permissions::Permissions::default())
         .manage(mcp::Editors::default())
         .setup(|app| {
+            // Before anything opens the data folder.
+            paths::migrate_legacy_data();
             errors::init(app.package_info().version.to_string());
             app.manage(db::open().map_err(|e| format!("database unavailable: {e}"))?);
             if let Err(e) = hooks::write_scripts() {
@@ -69,6 +71,8 @@ pub fn run() {
             files::path_exists,
             files::drop_save,
             paths::path_check,
+            paths::legacy_data_available,
+            paths::legacy_data_reimport,
             paths::home_dir,
             install::install_kind,
             install::package_update_check,

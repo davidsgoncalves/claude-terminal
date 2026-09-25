@@ -41,7 +41,7 @@ jobs:
       - name: Smoke test
         shell: pwsh
         run: |
-          $exe = Resolve-Path "src-tauri/target/release/claude-terminal.exe"
+          $exe = Resolve-Path "src-tauri/target/release/shellhive.exe"
 
           $context = '{}' | & $exe --hook session-start
           if ($context -notmatch 'SessionStart') { throw "hook mode printed: $context" }
