@@ -1,4 +1,4 @@
-//! `claude-terminal --hook <kind>`: the app's own executable standing in for
+//! `shellhive --hook <kind>`: the app's own executable standing in for
 //! the hook scripts where `sh` and `curl` cannot be counted on (Windows).
 //! It reads the hook payload on stdin, posts it to the running app and prints
 //! what Claude Code expects back, exiting 0 either way so a closed app never
@@ -16,7 +16,7 @@ const QUICK: Duration = Duration::from_secs(2);
 pub fn run(kind: &str) -> i32 {
     let mut input = Vec::new();
     let _ = std::io::stdin().read_to_end(&mut input);
-    let tab = std::env::var("CLAUDE_TERMINAL_TAB_ID").unwrap_or_default();
+    let tab = std::env::var("SHELLHIVE_TAB_ID").unwrap_or_default();
 
     match kind {
         "forward" => {

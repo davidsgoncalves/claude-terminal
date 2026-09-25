@@ -54,7 +54,7 @@ fn claude_function() -> Option<String> {
         let settings = settings.to_string_lossy().replace('\'', "''");
         let port = crate::hooks::PORT;
         Some(format!(
-            "function claude {{ $t = $env:CLAUDE_TERMINAL_TAB_ID; \
+            "function claude {{ $t = $env:SHELLHIVE_TAB_ID; \
              $m = Join-Path $env:TEMP \"shellhive-mcp-$t.json\"; \
              '{{\"mcpServers\":{{\"shellhive\":{{\"type\":\"http\",\"url\":\"http://127.0.0.1:{port}/mcp\",\"headers\":{{\"X-Tab-Id\":\"' + $t + '\"}}}}}}}}' | Set-Content -Encoding ascii $m; \
              $real = (Get-Command claude -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1).Source; \
@@ -130,7 +130,7 @@ pub fn pty_spawn(
     // Programs that detect hyperlink support (Claude Code included) then print
     // file paths and URLs as OSC 8 links, which the terminal makes clickable.
     cmd.env("FORCE_HYPERLINK", "1");
-    cmd.env("CLAUDE_TERMINAL_TAB_ID", &id);
+    cmd.env("SHELLHIVE_TAB_ID", &id);
     if let Some(dir) = cwd.map(PathBuf::from).or_else(dirs::home_dir) {
         cmd.cwd(dir);
     }

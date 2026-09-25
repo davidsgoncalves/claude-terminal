@@ -242,10 +242,7 @@ fn handle(app: AppHandle, mut req: tiny_http::Request) {
 }
 
 fn config_dir() -> Result<PathBuf, String> {
-    let base = dirs::config_dir().ok_or("no config dir")?;
-    let dir = base.join("claude-terminal");
-    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-    Ok(dir)
+    crate::paths::data_dir().ok_or_else(|| "no config dir".to_string())
 }
 
 /// The statusLine command the user already has in ~/.claude/settings.json, if any.
@@ -294,17 +291,13 @@ fn hook_command(kind: &str, script: &std::path::Path) -> String {
 /// The settings file every `claude` in a tab is launched with.
 #[cfg(windows)]
 pub fn settings_path() -> Option<PathBuf> {
-    Some(
-        dirs::config_dir()?
-            .join("claude-terminal")
-            .join("hooks.json"),
-    )
+    Some(crate::paths::data_dir()?.join("hooks.json"))
 }
 
 /// Directory holding the `claude` shim, prepended to each tab's PATH so any
 /// `claude` typed in a tab carries the app's settings.
 pub fn shim_dir() -> Option<PathBuf> {
-    Some(dirs::config_dir()?.join("claude-terminal").join("bin"))
+    Some(crate::paths::data_dir()?.join("bin"))
 }
 
 /// Writes the forwarder scripts and a settings file into the app config dir.
@@ -330,7 +323,7 @@ pub fn write_scripts() -> Result<HookSetup, String> {
              # Always exits 0 so a missing app never blocks Claude Code.\n\
              curl -s --max-time 2 -X POST \\\n\
              \x20 -H \"Content-Type: application/json\" \\\n\
-             \x20 -H \"X-Tab-Id: ${{CLAUDE_TERMINAL_TAB_ID:-}}\" \\\n\
+             \x20 -H \"X-Tab-Id: ${{SHELLHIVE_TAB_ID:-}}\" \\\n\
              \x20 --data-binary @- \"http://127.0.0.1:{PORT}/hook\" >/dev/null 2>&1 || true\n\
              exit 0\n"
         ),
@@ -347,7 +340,7 @@ pub fn write_scripts() -> Result<HookSetup, String> {
              # Asks Shellhive to decide a permission request.\n\
              out=$(curl -s --max-time {curl_timeout} -X POST \\\n\
              \x20 -H \"Content-Type: application/json\" \\\n\
-             \x20 -H \"X-Tab-Id: ${{CLAUDE_TERMINAL_TAB_ID:-}}\" \\\n\
+             \x20 -H \"X-Tab-Id: ${{SHELLHIVE_TAB_ID:-}}\" \\\n\
              \x20 --data-binary @- \"http://127.0.0.1:{PORT}/permission\" 2>/dev/null)\n\
              case \"$out\" in\n\
              \x20 *permissionDecision*) printf '%s' \"$out\" ;;\n\
@@ -365,7 +358,7 @@ pub fn write_scripts() -> Result<HookSetup, String> {
              input=$(cat)\n\
              printf '%s' \"$input\" | curl -s --max-time 2 -X POST \\\n\
              \x20 -H \"Content-Type: application/json\" \\\n\
-             \x20 -H \"X-Tab-Id: ${{CLAUDE_TERMINAL_TAB_ID:-}}\" \\\n\
+             \x20 -H \"X-Tab-Id: ${{SHELLHIVE_TAB_ID:-}}\" \\\n\
              \x20 --data-binary @- \"http://127.0.0.1:{PORT}/hook\" >/dev/null 2>&1 || true\n\
              cat <<'JSON'\n\
              {SESSION_CONTEXT}\n\
@@ -386,7 +379,7 @@ pub fn write_scripts() -> Result<HookSetup, String> {
              input=$(cat)\n\
              printf '%s' \"$input\" | curl -s --max-time 2 -X POST \\\n\
              \x20 -H \"Content-Type: application/json\" \\\n\
-             \x20 -H \"X-Tab-Id: ${{CLAUDE_TERMINAL_TAB_ID:-}}\" \\\n\
+             \x20 -H \"X-Tab-Id: ${{SHELLHIVE_TAB_ID:-}}\" \\\n\
              \x20 --data-binary @- \"http://127.0.0.1:{PORT}/statusline\" >/dev/null 2>&1 || true\n\
              ORIG={original}\n\
              if [ -n \"$ORIG\" ]; then\n\
@@ -483,9 +476,9 @@ pub fn write_scripts() -> Result<HookSetup, String> {
              # Claude Code does not expand variables in a --mcp-config file, so a\n\
              # tab gets its own copy with its id written in, for the MCP server\n\
              # to know which tab a tool call comes from.\n\
-             if [ -n \"${{CLAUDE_TERMINAL_TAB_ID:-}}\" ]; then\n\
-             \x20 TAB_MCP=\"${{TMPDIR:-/tmp}}/shellhive-mcp-$CLAUDE_TERMINAL_TAB_ID.json\"\n\
-             \x20 printf '{{\"mcpServers\":{{\"shellhive\":{{\"type\":\"http\",\"url\":\"http://127.0.0.1:{PORT}/mcp\",\"headers\":{{\"X-Tab-Id\":\"%s\"}}}}}}}}' \"$CLAUDE_TERMINAL_TAB_ID\" > \"$TAB_MCP\" && MCP=\"$TAB_MCP\"\n\
+             if [ -n \"${{SHELLHIVE_TAB_ID:-}}\" ]; then\n\
+             \x20 TAB_MCP=\"${{TMPDIR:-/tmp}}/shellhive-mcp-$SHELLHIVE_TAB_ID.json\"\n\
+             \x20 printf '{{\"mcpServers\":{{\"shellhive\":{{\"type\":\"http\",\"url\":\"http://127.0.0.1:{PORT}/mcp\",\"headers\":{{\"X-Tab-Id\":\"%s\"}}}}}}}}' \"$SHELLHIVE_TAB_ID\" > \"$TAB_MCP\" && MCP=\"$TAB_MCP\"\n\
              fi\n\
              exec \"$REAL\" --settings {settings} --mcp-config \"$MCP\" \"$@\"\n",
             shim_dir = shell_single_quote(&bin_dir.to_string_lossy()),

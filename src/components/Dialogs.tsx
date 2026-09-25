@@ -32,6 +32,40 @@ interface ChangelogEntry {
 /** Written by hand for each release; `pnpm bump` adds the empty entry. */
 const CHANGELOG = changelog as ChangelogEntry[];
 
+/** Copies the Claude Terminal data in again, over the current data. */
+function LegacyImportSection() {
+  const [available, setAvailable] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    void invoke<boolean>("legacy_data_available").then(setAvailable).catch(() => {});
+  }, []);
+
+  if (!available) return null;
+
+  const reimport = () => {
+    if (!confirming) return setConfirming(true);
+    void invoke("legacy_data_reimport").catch((e) => setError(String(e)));
+  };
+
+  return (
+    <section className="settings-section">
+      <h3>Dados do Claude Terminal</h3>
+      <p className="hint">
+        Na primeira abertura do Shellhive, suas abas, grupos e configurações foram copiados do Claude Terminal, e a pasta
+        antiga ficou como backup. Importar de novo substitui os dados atuais por essa cópia e reinicia o app.
+      </p>
+      <div className="row">
+        <button className={`ghost auto ${confirming ? "danger" : ""}`} onClick={reimport}>
+          {confirming ? "Confirmar: substituir e reiniciar" : "Importar de novo do Claude Terminal"}
+        </button>
+      </div>
+      {error && <p className="error">{error}</p>}
+    </section>
+  );
+}
+
 const ISSUE_BODY_MAX = 6000;
 
 /** Opt-in error reports, and a GitHub issue carrying the local error log. */
@@ -177,6 +211,8 @@ function AboutTab() {
     </section>
 
     <ErrorReportsSection version={version} kind={INSTALL_LABEL[kind] ?? kind} />
+
+    <LegacyImportSection />
 
     <section className="settings-section">
       <h3>Diagnóstico</h3>

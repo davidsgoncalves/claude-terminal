@@ -852,3 +852,4 @@ button.star.on { color: var(--accent); }
   .term-pane.attention::after { animation: none; border-color: var(--c-permission); }
 }
 .command-queued { margin: 6px 0 0; font-size: 11px; color: var(--c-permission); }
+button.ghost.danger { border-color: #e0564f; color: #e0564f; }

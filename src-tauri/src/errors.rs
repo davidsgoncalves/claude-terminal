@@ -18,9 +18,7 @@ static CLIENT: Mutex<Option<sentry::ClientInitGuard>> = Mutex::new(None);
 static RELEASE: Mutex<Option<String>> = Mutex::new(None);
 
 fn dir() -> Option<PathBuf> {
-    let dir = dirs::config_dir()?.join("claude-terminal");
-    fs::create_dir_all(&dir).ok()?;
-    Some(dir)
+    crate::paths::data_dir()
 }
 
 fn log_path() -> Option<PathBuf> {

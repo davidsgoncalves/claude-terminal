@@ -128,7 +128,7 @@ pub fn drop_save(request: Request<'_>) -> Result<String, String> {
         .filter(|v| !v.is_empty() && v != "." && v != "..")
         .unwrap_or_else(|| "arquivo".into());
     let dir = std::env::temp_dir()
-        .join("claude-terminal-drops")
+        .join("shellhive-drops")
         .join(crate::hooks::next_public_id());
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     let path = dir.join(name);

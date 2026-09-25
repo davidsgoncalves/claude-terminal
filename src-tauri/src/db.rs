@@ -9,10 +9,7 @@ const SCHEMA: i32 = 1;
 pub struct Db(pub Mutex<Connection>);
 
 fn db_path() -> Result<PathBuf, String> {
-    let dir = dirs::config_dir()
-        .ok_or("no config dir")?
-        .join("claude-terminal");
-    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let dir = crate::paths::data_dir().ok_or("no config dir")?;
     Ok(dir.join("data.db"))
 }
 
@@ -104,7 +101,7 @@ fn import_legacy_state(conn: &Connection) {
     if has > 0 {
         return;
     }
-    let Some(dir) = dirs::config_dir().map(|d| d.join("claude-terminal")) else {
+    let Some(dir) = crate::paths::data_dir() else {
         return;
     };
     let legacy = dir.join("state.json");
